@@ -1,6 +1,7 @@
 package io.ionic.libs.osfilesystemlib.controller
 
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
+import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,12 +32,39 @@ class OSFLSTFileHelper {
         }
 
     /**
-     * Creates a directory or file
+     * Delete a file or directory
+     *
+     * @param options options to delete the file/directory
+     * @return success if the file/directory was deleted successfully, error otherwise
+     */
+    suspend fun delete(options: OSFLSTDeleteOptions): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val file = File(options.fullPath)
+            if (!file.exists()) {
+                return@withContext Result.failure(OSFLSTExceptions.DeleteFailed.DoesNotExist())
+            }
+            val deleteSucceeded = if (file.isDirectory) {
+                if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
+                    return@withContext Result.failure(OSFLSTExceptions.DeleteFailed.CannotDeleteChildren())
+                }
+                file.deleteRecursively()
+            } else {
+                file.delete()
+            }
+            return@withContext if(deleteSucceeded) {
+                Result.success(Unit)
+            } else {
+                Result.failure(OSFLSTExceptions.DeleteFailed.Unknown())
+            }
+        }
+
+    /**
+     * Create a directory or file
      *
      * Most logic is common to both, except the actual creation
      *
      * @param options options to create the file/directory
-     * @param true if meant to create directory, false if meant to create file
+     * @param isDirectory true if meant to create directory, false if meant to create file
      * @return success if the file/directory was created successfully, error otherwise
      */
     private fun createDirOrFile(
@@ -55,12 +83,12 @@ class OSFLSTFileHelper {
         if (!checkParentDirectory(file, create = options.recursive)) {
             return Result.failure(OSFLSTExceptions.CreateFailed.NoParentDirectory())
         }
-        val createResult = if (isDirectory) {
+        val createSucceeded = if (isDirectory) {
             file.mkdir()
         } else {
             file.createNewFile()
         }
-        return if (createResult) {
+        return if (createSucceeded) {
             Result.success(Unit)
         } else {
             Result.failure(OSFLSTExceptions.CreateFailed.Unknown())

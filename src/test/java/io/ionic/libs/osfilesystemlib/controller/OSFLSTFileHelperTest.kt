@@ -1,6 +1,7 @@
 package io.ionic.libs.osfilesystemlib.controller
 
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
+import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -159,4 +160,83 @@ class OSFLSTFileHelperTest {
             assertFalse(file.exists())
         }
     // endregion createFile tests
+
+    // region delete tests
+    @Test
+    fun `given file exists, when we delete it, success is returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+        val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
+
+        assertTrue(result.isSuccess)
+        assertFalse(file.exists())
+    }
+
+    @Test
+    fun `given empty directory exists, when we delete it with recursive=false, success is returned`() =
+        runTest {
+            val dir = dirInRootDir
+            val path = dir.absolutePath
+            sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
+
+            assertTrue(result.isSuccess)
+            assertFalse(dir.exists())
+        }
+
+    @Test
+    fun `given non-empty directory exists, when we delete it with recursive=true, success is returned`() =
+        runTest {
+            val file = fileInSubDir
+            val filePath = file.absolutePath
+            val parentDir = file.parentFile!!
+            sut.createFile(OSFLSTCreateOptions(filePath, recursive = true, exclusive = false))
+
+            val result = sut.delete(OSFLSTDeleteOptions(parentDir.absolutePath, recursive = true))
+
+            assertTrue(result.isSuccess)
+            assertFalse(parentDir.exists() && file.exists())
+        }
+
+    @Test
+    fun `given non-empty directory exists, when we delete it with recursive=false, CannotDeleteChildren error is returned`() =
+        runTest {
+            val file = fileInSubDir
+            val filePath = file.absolutePath
+            val parentDir = file.parentFile!!
+            sut.createFile(OSFLSTCreateOptions(filePath, recursive = true, exclusive = false))
+
+            val result = sut.delete(OSFLSTDeleteOptions(parentDir.absolutePath, recursive = false))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.CannotDeleteChildren)
+            assertTrue(parentDir.exists() && file.exists())
+        }
+
+    @Test
+    fun `given file does not exist, when we delete it, DoesNotExist error is returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+
+        val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
+    }
+
+    @Test
+    fun `given directory does not exist, when we delete it, DoesNotExist error is returned`() =
+        runTest {
+            val dir = dirInRootDir
+            val path = dir.absolutePath
+
+            val result = sut.delete(OSFLSTDeleteOptions(path, recursive = true))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
+        }
+    // endregion delete tests
 }

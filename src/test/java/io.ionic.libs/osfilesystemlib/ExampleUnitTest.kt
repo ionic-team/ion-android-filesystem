@@ -1,4 +1,4 @@
-package organizationidplaceholder.libtemplateplaceholder
+package io.ionic.libs.osfilesystemlib
 
 import org.junit.Test
 

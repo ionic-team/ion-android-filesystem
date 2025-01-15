@@ -24,9 +24,9 @@ This library is used by both Capacitor and Cordova plugins - Links to them will 
 In your app-level gradle file, import the `OSFilesystemLib` library like so:
 
 ```
-    dependencies {
-    	implementation("io.ionic.libs:osfilesystem-android:1.0.0")
-	}
+dependencies {
+    implementation("io.ionic.libs:osfilesystem-android:1.0.0")
+}
 ```
 
 ## Methods

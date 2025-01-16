@@ -27,9 +27,7 @@ class OSFLSTFileHelper {
      * @return success if the directory was created successfully, error otherwise
      */
     suspend fun createDirectory(options: OSFLSTCreateOptions): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext createDirOrFile(options, isDirectory = true)
-        }
+        withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = true) }
 
     /**
      * Create a file
@@ -38,9 +36,7 @@ class OSFLSTFileHelper {
      * @return success if the file was created successfully, error otherwise
      */
     suspend fun createFile(options: OSFLSTCreateOptions): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext createDirOrFile(options, isDirectory = false)
-        }
+        withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = false) }
 
     /**
      * Delete a file or directory
@@ -49,22 +45,22 @@ class OSFLSTFileHelper {
      * @return success if the file/directory was deleted successfully, error otherwise
      */
     suspend fun delete(options: OSFLSTDeleteOptions): Result<Unit> = withContext(Dispatchers.IO) {
-        val file = File(options.fullPath)
-        if (!file.exists()) {
-            return@withContext Result.failure(OSFLSTExceptions.DeleteFailed.DoesNotExist())
-        }
-        val deleteSucceeded = if (file.isDirectory) {
-            if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
-                return@withContext Result.failure(OSFLSTExceptions.DeleteFailed.CannotDeleteChildren())
+        runCatching {
+            val file = File(options.fullPath)
+            if (!file.exists()) {
+                throw OSFLSTExceptions.DeleteFailed.DoesNotExist()
             }
-            file.deleteRecursively()
-        } else {
-            file.delete()
-        }
-        return@withContext if (deleteSucceeded) {
-            Result.success(Unit)
-        } else {
-            Result.failure(OSFLSTExceptions.DeleteFailed.Unknown())
+            val deleteSucceeded = if (file.isDirectory) {
+                if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
+                    throw OSFLSTExceptions.DeleteFailed.CannotDeleteChildren()
+                }
+                file.deleteRecursively()
+            } else {
+                file.delete()
+            }
+            if (!deleteSucceeded) {
+                throw OSFLSTExceptions.DeleteFailed.Unknown()
+            }
         }
     }
 
@@ -75,45 +71,41 @@ class OSFLSTFileHelper {
      * @return success if the file was saved successfully, error otherwise
      */
     suspend fun saveFile(options: OSFLSTSaveOptions): Result<Unit> = withContext(Dispatchers.IO) {
-        val file = File(options.fullPath)
-        if (!file.exists()) {
-            if (options.createFileRecursive == null) {
-                return@withContext Result.failure(OSFLSTExceptions.SaveFailed.DoesNotExist())
-            } else {
-                val createFileResult = createFile(
-                    OSFLSTCreateOptions(
-                        options.fullPath,
-                        recursive = options.createFileRecursive,
-                        exclusive = false
+        runCatching {
+            val file = File(options.fullPath)
+            if (!file.exists()) {
+                if (options.createFileRecursive == null) {
+                    throw OSFLSTExceptions.SaveFailed.DoesNotExist()
+                } else {
+                    val createFileResult = createFile(
+                        OSFLSTCreateOptions(
+                            options.fullPath,
+                            recursive = options.createFileRecursive,
+                            exclusive = false
+                        )
                     )
-                )
-                if (createFileResult.isFailure) {
-                    return@withContext Result.failure(
-                        createFileResult.exceptionOrNull() ?: NullPointerException()
-                    )
+                    createFileResult.exceptionOrNull()?.let { throw it }
                 }
+            } else if (file.isDirectory) {
+                return@withContext Result.failure(OSFLSTExceptions.SaveFailed.IsDirectory())
             }
-        } else if (file.isDirectory) {
-            return@withContext Result.failure(OSFLSTExceptions.SaveFailed.IsDirectory())
-        }
-        val fileStream = FileOutputStream(file, options.mode == OSFLSTSaveMode.APPEND)
-        if (options.encoding is OSFLSTEncoding.WithCharset) {
-            val writer =
-                BufferedWriter(OutputStreamWriter(fileStream, options.encoding.charset))
-            writer.use { writer.write(options.data) }
-        } else {
-            val outputStream = BufferedOutputStream(fileStream)
-            val dataToDecode = if (options.data.contains(",")) {
-                // it is possible that the data comes as a data url "data:<type>;base64, <base64content>"
-                options.data.split(",")[1].trim()
+            val fileStream = FileOutputStream(file, options.mode == OSFLSTSaveMode.APPEND)
+            if (options.encoding is OSFLSTEncoding.WithCharset) {
+                val writer =
+                    BufferedWriter(OutputStreamWriter(fileStream, options.encoding.charset))
+                writer.use { writer.write(options.data) }
             } else {
-                options.data
+                val outputStream = BufferedOutputStream(fileStream)
+                val dataToDecode = if (options.data.contains(",")) {
+                    // it is possible that the data comes as a data url "data:<type>;base64, <base64content>"
+                    options.data.split(",")[1].trim()
+                } else {
+                    options.data
+                }
+                val base64Data = Base64.decode(dataToDecode, Base64.NO_WRAP)
+                outputStream.use { outputStream.write(base64Data) }
             }
-            val base64Data = Base64.decode(dataToDecode, Base64.NO_WRAP)
-            outputStream.use { outputStream.write(base64Data) }
         }
-
-        return@withContext Result.success(Unit)
     }
 
     /**
@@ -122,15 +114,14 @@ class OSFLSTFileHelper {
      * @param options options for reading the file
      * @return success with file contents string if it was read successfully, error otherwise
      */
-    suspend fun readFile(options: OSFLSTReadOptions): Result<String> =
-        withContext(Dispatchers.IO) {
+    suspend fun readFile(options: OSFLSTReadOptions): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
             val file = File(options.fullPath)
             if (!file.exists()) {
-                return@withContext Result.failure(OSFLSTExceptions.ReadFailed.DoesNotExist())
+                throw OSFLSTExceptions.ReadFailed.DoesNotExist()
             } else if (file.isDirectory) {
-                return@withContext Result.failure(OSFLSTExceptions.ReadFailed.IsDirectory())
+                throw OSFLSTExceptions.ReadFailed.IsDirectory()
             }
-            // TODO catch errors
             val inputStream = FileInputStream(file)
             val fileContents: String = if (options.encoding is OSFLSTEncoding.WithCharset) {
                 val reader =
@@ -140,8 +131,9 @@ class OSFLSTFileHelper {
                 val byteArray = inputStream.readBytes()
                 Base64.encodeToString(byteArray, Base64.NO_WRAP)
             }
-            return@withContext Result.success(fileContents)
+            return@runCatching fileContents
         }
+    }
 
     /**
      * Create a directory or file
@@ -155,28 +147,26 @@ class OSFLSTFileHelper {
     private fun createDirOrFile(
         options: OSFLSTCreateOptions,
         isDirectory: Boolean
-    ): Result<Unit> {
+    ): Result<Unit> = runCatching {
         val file = File(options.fullPath)
         if (file.exists()) {
-            return if (options.exclusive) {
-                Result.failure(OSFLSTExceptions.CreateFailed.AlreadyExists())
+            if (options.exclusive) {
+                throw OSFLSTExceptions.CreateFailed.AlreadyExists()
             } else {
                 // file/directory creation is not going to do anything if file/directory already exists
-                Result.success(Unit)
+                return@runCatching
             }
         }
         if (!checkParentDirectory(file, create = options.recursive)) {
-            return Result.failure(OSFLSTExceptions.CreateFailed.NoParentDirectory())
+            throw OSFLSTExceptions.CreateFailed.NoParentDirectory()
         }
         val createSucceeded = if (isDirectory) {
             file.mkdir()
         } else {
             file.createNewFile()
         }
-        return if (createSucceeded) {
-            Result.success(Unit)
-        } else {
-            Result.failure(OSFLSTExceptions.CreateFailed.Unknown())
+        if (!createSucceeded) {
+            throw OSFLSTExceptions.CreateFailed.Unknown()
         }
     }
 

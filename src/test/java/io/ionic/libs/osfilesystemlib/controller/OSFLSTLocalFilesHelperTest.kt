@@ -1,144 +1,26 @@
 package io.ionic.libs.osfilesystemlib.controller
 
+import io.ionic.libs.osfilesystemlib.common.OSFLSTBaseTest
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveMode
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveOptions
-import io.mockk.every
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
-import java.io.File
 import java.util.Base64
 
-class OSFLSTFileHelperTest {
+class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
 
-    private lateinit var sut: OSFLSTFileHelper
+    private lateinit var sut: OSFLSTLocalFilesHelper
 
-    private lateinit var testRootDirectory: File
-    private val fileInRootDir: File get() = File(testRootDirectory, "file.txt")
-    private val dirInRootDir: File get() = File(testRootDirectory, "dir")
-    private val fileInSubDir: File
-        get() = File(
-            File(testRootDirectory, "subdir1/subdir2"),
-            "doc.pdf"
-        )
-    private val dirInSubDir: File
-        get() = File(
-            File(testRootDirectory, "subdir1/subdir2"),
-            "directory"
-        )
-
-    @Before
-    fun setUp() {
-        testRootDirectory = File(System.getProperty("java.io.tmpdir"), "testDir").apply {
-            mkdirs()
-        }
-        // these asserts are to make sure the code in `tearDown`,
-        // if one of the tests crashes, it may cause the asserts to fail
-        assertTrue(testRootDirectory.exists())
-        assertTrue(testRootDirectory.list().isNullOrEmpty())
-
-        // substitute android implementation for base64 so that unit tests work
-        mockkStatic(android.util.Base64::class)
-        every { android.util.Base64.encodeToString(any(), any()) } answers {
-            Base64.getEncoder().encodeToString(args.first() as ByteArray)
-        }
-        every { android.util.Base64.decode(any<String>(), any()) } answers {
-            Base64.getDecoder().decode(args.first() as String)
-        }
-        every { android.util.Base64.decode(any<ByteArray>(), any()) } answers {
-            Base64.getDecoder().decode(args.first() as ByteArray)
-        }
-
-        sut = OSFLSTFileHelper()
+    override fun additionalSetups() {
+        sut = OSFLSTLocalFilesHelper()
     }
-
-    @After
-    fun tearDown() {
-        unmockkStatic(android.util.Base64::class)
-        testRootDirectory.deleteRecursively()
-    }
-
-    // region createDirectory tests
-    @Test
-    fun `given there is a parent directory, when we create a directory there, success is returned`() =
-        runTest {
-            val dir = dirInRootDir
-            val path = dir.absolutePath
-
-            val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
-
-            assertTrue(result.isSuccess)
-            assertTrue(dir.exists())
-            assertTrue(dir.isDirectory)
-        }
-
-    @Test
-    fun `given there is no parent directory, when we create a directory with recursive=true, success is returned`() =
-        runTest {
-            val dir = dirInSubDir
-            val path = dir.absolutePath
-
-            val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
-
-            assertTrue(result.isSuccess)
-            assertTrue(dir.exists())
-            assertTrue(dir.isDirectory)
-        }
-
-    @Test
-    fun `given there is no parent directory, when we create a directory with recursive=false, NoParentDirectory error is returned`() =
-        runTest {
-            val dir = dirInSubDir
-            val path = dir.absolutePath
-
-            val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.CreateFailed.NoParentDirectory)
-            assertFalse(dir.exists())
-        }
-
-    @Test
-    fun `given directory exists, when we create a directory with exclusive=true, AlreadyExists error is returned`() =
-        runTest {
-            val existingDir = testRootDirectory
-            val path = existingDir.absolutePath
-
-            val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = true))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.CreateFailed.AlreadyExists)
-            assertTrue(existingDir.exists())
-        }
-
-    @Test
-    fun `given directory exists, when we attempt to create it with exclusive=false, success is returned`() =
-        runTest {
-            val existingDir = testRootDirectory
-            val path = existingDir.absolutePath
-
-            val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
-
-            assertTrue(result.isSuccess)
-            assertTrue(existingDir.exists())
-        }
-    // endregion createDirectory tests
 
     // region createFile tests
     @Test
@@ -184,84 +66,30 @@ class OSFLSTFileHelperTest {
         }
     // endregion createFile tests
 
-    // region delete tests
+    // region deleteFile tests
     @Test
     fun `given file exists, when we delete it, success is returned`() = runTest {
         val file = fileInRootDir
         val path = file.absolutePath
         sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
 
-        val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
+        val result = sut.deleteFile(path)
 
         assertTrue(result.isSuccess)
         assertFalse(file.exists())
     }
 
     @Test
-    fun `given empty directory exists, when we delete it with recursive=false, success is returned`() =
-        runTest {
-            val dir = dirInRootDir
-            val path = dir.absolutePath
-            sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
-
-            val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
-
-            assertTrue(result.isSuccess)
-            assertFalse(dir.exists())
-        }
-
-    @Test
-    fun `given non-empty directory exists, when we delete it with recursive=true, success is returned`() =
-        runTest {
-            val file = fileInSubDir
-            val filePath = file.absolutePath
-            val parentDir = file.parentFile!!
-            sut.createFile(OSFLSTCreateOptions(filePath, recursive = true, exclusive = false))
-
-            val result = sut.delete(OSFLSTDeleteOptions(parentDir.absolutePath, recursive = true))
-
-            assertTrue(result.isSuccess)
-            assertFalse(parentDir.exists() && file.exists())
-        }
-
-    @Test
-    fun `given non-empty directory exists, when we delete it with recursive=false, CannotDeleteChildren error is returned`() =
-        runTest {
-            val file = fileInSubDir
-            val filePath = file.absolutePath
-            val parentDir = file.parentFile!!
-            sut.createFile(OSFLSTCreateOptions(filePath, recursive = true, exclusive = false))
-
-            val result = sut.delete(OSFLSTDeleteOptions(parentDir.absolutePath, recursive = false))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.CannotDeleteChildren)
-            assertTrue(parentDir.exists() && file.exists())
-        }
-
-    @Test
     fun `given file does not exist, when we delete it, DoesNotExist error is returned`() = runTest {
         val file = fileInRootDir
         val path = file.absolutePath
 
-        val result = sut.delete(OSFLSTDeleteOptions(path, recursive = false))
+        val result = sut.deleteFile(path)
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
     }
-
-    @Test
-    fun `given directory does not exist, when we delete it, DoesNotExist error is returned`() =
-        runTest {
-            val dir = dirInRootDir
-            val path = dir.absolutePath
-
-            val result = sut.delete(OSFLSTDeleteOptions(path, recursive = true))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
-        }
-    // endregion delete tests
+    // endregion deleteFile tests
 
     // region save + read file tests
     @Test
@@ -592,9 +420,8 @@ class OSFLSTFileHelperTest {
     @Test
     fun `given there is a directory, when trying to save it as a file, IsDirectory error is returned`() =
         runTest {
-            val dir = dirInSubDir
+            val dir = testRootDirectory
             val path = dir.absolutePath
-            sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
 
 
             val result = sut.saveFile(
@@ -616,9 +443,8 @@ class OSFLSTFileHelperTest {
     @Test
     fun `given there is a directory, when trying to read it as a file, IsDirectory error is returned`() =
         runTest {
-            val dir = dirInRootDir
+            val dir = testRootDirectory
             val path = dir.absolutePath
-            sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
 
             val result = sut.readFile(OSFLSTReadOptions(path, OSFLSTEncoding.Default))
 

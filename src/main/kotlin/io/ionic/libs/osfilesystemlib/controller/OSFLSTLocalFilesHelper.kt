@@ -1,6 +1,8 @@
 package io.ionic.libs.osfilesystemlib.controller
 
 import android.util.Base64
+import io.ionic.libs.osfilesystemlib.controller.internal.createDirOrFile
+import io.ionic.libs.osfilesystemlib.controller.internal.deleteDirOrFile
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
@@ -18,16 +20,7 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
-class OSFLSTFileHelper {
-
-    /**
-     * Create a directory
-     *
-     * @param options options to create the directory
-     * @return success if the directory was created successfully, error otherwise
-     */
-    suspend fun createDirectory(options: OSFLSTCreateOptions): Result<Unit> =
-        withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = true) }
+class OSFLSTLocalFilesHelper {
 
     /**
      * Create a file
@@ -39,30 +32,15 @@ class OSFLSTFileHelper {
         withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = false) }
 
     /**
-     * Delete a file or directory
+     * Delete a file
      *
-     * @param options options to delete the file/directory
-     * @return success if the file/directory was deleted successfully, error otherwise
+     * @param fullPath the full path to the file
+     * @return success if the file was deleted successfully, error otherwise
      */
-    suspend fun delete(options: OSFLSTDeleteOptions): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            val file = File(options.fullPath)
-            if (!file.exists()) {
-                throw OSFLSTExceptions.DeleteFailed.DoesNotExist()
-            }
-            val deleteSucceeded = if (file.isDirectory) {
-                if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
-                    throw OSFLSTExceptions.DeleteFailed.CannotDeleteChildren()
-                }
-                file.deleteRecursively()
-            } else {
-                file.delete()
-            }
-            if (!deleteSucceeded) {
-                throw OSFLSTExceptions.DeleteFailed.Unknown()
-            }
+    suspend fun deleteFile(fullPath: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            deleteDirOrFile(OSFLSTDeleteOptions(fullPath, recursive = false))
         }
-    }
 
     /**
      * Saves data to a file
@@ -134,51 +112,4 @@ class OSFLSTFileHelper {
             return@runCatching fileContents
         }
     }
-
-    /**
-     * Create a directory or file
-     *
-     * Most logic is common to both, except the actual creation
-     *
-     * @param options options to create the file/directory
-     * @param isDirectory true if meant to create directory, false if meant to create file
-     * @return success if the file/directory was created successfully, error otherwise
-     */
-    private fun createDirOrFile(
-        options: OSFLSTCreateOptions,
-        isDirectory: Boolean
-    ): Result<Unit> = runCatching {
-        val file = File(options.fullPath)
-        if (file.exists()) {
-            if (options.exclusive) {
-                throw OSFLSTExceptions.CreateFailed.AlreadyExists()
-            } else {
-                // file/directory creation is not going to do anything if file/directory already exists
-                return@runCatching
-            }
-        }
-        if (!checkParentDirectory(file, create = options.recursive)) {
-            throw OSFLSTExceptions.CreateFailed.NoParentDirectory()
-        }
-        val createSucceeded = if (isDirectory) {
-            file.mkdir()
-        } else {
-            file.createNewFile()
-        }
-        if (!createSucceeded) {
-            throw OSFLSTExceptions.CreateFailed.Unknown()
-        }
-    }
-
-    /**
-     * Checks the parent directory of the file
-     *
-     * @param file the file to retrieve the parent directory from
-     * @param create whether or not should create the parent directories if missing
-     *
-     * @return true if parent directory exists, false otherwise
-     */
-    private fun checkParentDirectory(file: File, create: Boolean): Boolean = file.parentFile?.let {
-        it.exists() || (create && it.mkdirs())
-    } ?: false
 }

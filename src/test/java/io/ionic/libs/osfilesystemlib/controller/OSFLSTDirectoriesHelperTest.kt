@@ -145,7 +145,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val result = sut.deleteDirectory(OSFLSTDeleteOptions(path, recursive = true))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
         }
     // endregion deleteDirectory tests
 }

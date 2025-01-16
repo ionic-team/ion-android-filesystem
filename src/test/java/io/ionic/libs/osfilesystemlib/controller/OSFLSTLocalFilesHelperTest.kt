@@ -87,7 +87,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         val result = sut.deleteFile(path)
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.DoesNotExist)
+        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
     }
     // endregion deleteFile tests
 
@@ -378,7 +378,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             )
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.SaveFailed.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
         }
 
     @Test
@@ -414,11 +414,11 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         )
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.ReadFailed.DoesNotExist)
+        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
     }
 
     @Test
-    fun `given there is a directory, when trying to save it as a file, IsDirectory error is returned`() =
+    fun `given there is a directory, when trying to save it as a file, error is returned`() =
         runTest {
             val dir = testRootDirectory
             val path = dir.absolutePath
@@ -436,20 +436,20 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
                 )
             )
 
+            // error is thrown on java.io side, exception is returned as-is
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.SaveFailed.IsDirectory)
         }
 
     @Test
-    fun `given there is a directory, when trying to read it as a file, IsDirectory error is returned`() =
+    fun `given there is a directory, when trying to read it as a file, error is returned`() =
         runTest {
             val dir = testRootDirectory
             val path = dir.absolutePath
 
             val result = sut.readFile(OSFLSTReadOptions(path, OSFLSTEncoding.Default))
 
+            // error is thrown on java.io side, exception is returned as-is
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.ReadFailed.IsDirectory)
         }
     // endregion save + read file tests
 }

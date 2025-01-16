@@ -53,7 +53,7 @@ class OSFLSTLocalFilesHelper {
             val file = File(options.fullPath)
             if (!file.exists()) {
                 if (options.createFileRecursive == null) {
-                    throw OSFLSTExceptions.SaveFailed.DoesNotExist()
+                    throw OSFLSTExceptions.DoesNotExist()
                 } else {
                     val createFileResult = createFile(
                         OSFLSTCreateOptions(
@@ -64,8 +64,6 @@ class OSFLSTLocalFilesHelper {
                     )
                     createFileResult.exceptionOrNull()?.let { throw it }
                 }
-            } else if (file.isDirectory) {
-                return@withContext Result.failure(OSFLSTExceptions.SaveFailed.IsDirectory())
             }
             val fileStream = FileOutputStream(file, options.mode == OSFLSTSaveMode.APPEND)
             if (options.encoding is OSFLSTEncoding.WithCharset) {
@@ -96,9 +94,7 @@ class OSFLSTLocalFilesHelper {
         runCatching {
             val file = File(options.fullPath)
             if (!file.exists()) {
-                throw OSFLSTExceptions.ReadFailed.DoesNotExist()
-            } else if (file.isDirectory) {
-                throw OSFLSTExceptions.ReadFailed.IsDirectory()
+                throw OSFLSTExceptions.DoesNotExist()
             }
             val inputStream = FileInputStream(file)
             val fileContents: String = if (options.encoding is OSFLSTEncoding.WithCharset) {

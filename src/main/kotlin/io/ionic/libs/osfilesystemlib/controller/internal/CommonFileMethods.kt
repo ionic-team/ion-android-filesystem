@@ -47,7 +47,7 @@ internal fun createDirOrFile(options: OSFLSTCreateOptions, isDirectory: Boolean)
 internal fun deleteDirOrFile(options: OSFLSTDeleteOptions): Result<Unit> = runCatching {
     val file = File(options.fullPath)
     if (!file.exists()) {
-        throw OSFLSTExceptions.DeleteFailed.DoesNotExist()
+        throw OSFLSTExceptions.DoesNotExist()
     }
     val deleteSucceeded = if (file.isDirectory) {
         if (!file.listFiles().isNullOrEmpty() && !options.recursive) {

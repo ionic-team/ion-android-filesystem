@@ -3,10 +3,12 @@ package io.ionic.libs.osfilesystemlib.controller
 import android.util.Base64
 import io.ionic.libs.osfilesystemlib.controller.internal.createDirOrFile
 import io.ionic.libs.osfilesystemlib.controller.internal.deleteDirOrFile
+import io.ionic.libs.osfilesystemlib.controller.internal.getMetadata
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
+import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
 import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveMode
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveOptions
@@ -108,4 +110,21 @@ class OSFLSTLocalFilesHelper {
             return@runCatching fileContents
         }
     }
+
+    /**
+     * Gets information about a file or directory
+     *
+     * @param fullPath the full path to the file or directory
+     * @return success with result containing relevant file information, error otherwise
+     */
+    suspend fun getFileMetadata(fullPath: String): Result<OSFLSTMetadataResult> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val file = File(fullPath)
+                if (!file.exists()) {
+                    throw OSFLSTExceptions.DoesNotExist()
+                }
+                getMetadata(fileObject = file)
+            }
+        }
 }

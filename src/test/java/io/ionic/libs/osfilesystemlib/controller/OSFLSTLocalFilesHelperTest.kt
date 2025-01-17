@@ -1,19 +1,26 @@
 package io.ionic.libs.osfilesystemlib.controller
 
+import android.os.Build
 import io.ionic.libs.osfilesystemlib.common.OSFLSTBaseTest
+import io.ionic.libs.osfilesystemlib.controller.internal.OSFLSTBuildConfig
 import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
+import io.ionic.libs.osfilesystemlib.model.OSFLSTFileType
 import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveMode
 import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveOptions
+import io.mockk.every
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.util.Base64
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
 
     private lateinit var sut: OSFLSTLocalFilesHelper
@@ -452,4 +459,124 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             assertTrue(result.isFailure)
         }
     // endregion save + read file tests
+
+    // region fileMetadata tests
+    @Test
+    fun `given empty file exists, when getting file metadata, the correct information is returned`() =
+        runTest {
+            mockkMimeTypeMap(TEXT_MIME_TYPE)
+            val path = fileInRootDir.absolutePath
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            result.getOrNull()!!.let {
+                assertEquals(path, it.fullPath)
+                assertEquals(FILE_NAME_TXT, it.name)
+                assertEquals(0, it.size)
+                assertEquals(OSFLSTFileType.File(TEXT_MIME_TYPE), it.type)
+            }
+        }
+
+    @Test
+    fun `given empty directory exists, when getting file metadata, the correct information is returned`() =
+        runTest {
+            val path = testRootDirectory.absolutePath
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            result.getOrNull()!!.let {
+                assertEquals(path, it.fullPath)
+                assertEquals(ROOT_DIR_NAME, it.name)
+                assertEquals(OSFLSTFileType.Directory, it.type)
+            }
+        }
+
+    @Test
+    fun `given non-empty file exists, when getting file metadata, the correct size is returned`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            val plainTextData = "Text"
+            sut.saveFile(
+                OSFLSTSaveOptions(
+                    path,
+                    data = plainTextData,
+                    encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8),
+                    mode = OSFLSTSaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            )
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            assertEquals(plainTextData.length.toLong(), result.getOrNull()?.size)
+        }
+
+    @Test
+    fun `given file is updated after creation, when getting file metadata, the lastModifiedTimestamp is more recent than the created`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            testScheduler.advanceTimeBy(60_000L)
+            sut.saveFile(
+                OSFLSTSaveOptions(
+                    path,
+                    data = "1",
+                    encoding = OSFLSTEncoding.DefaultCharset,
+                    mode = OSFLSTSaveMode.WRITE,
+                    createFileRecursive = false
+                )
+            )
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            result.getOrNull()!!.let {
+                assertTrue(it.lastModifiedTimestamp > it.createdTimestamp)
+            }
+        }
+
+    @Test
+    fun `given Android version below 26, when getting file metadata, createdTimestamp is zero`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            every { OSFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.N
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            assertEquals(0L, result.getOrNull()?.createdTimestamp)
+        }
+
+    @Test
+    fun `given unknown mimetype, when getting file metadata, type is File with fallback mimeType`() =
+        runTest {
+            val path = File(testRootDirectory, "fileWithoutExtension").absolutePath
+            mockkMimeTypeMap(null)
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            assertEquals(
+                OSFLSTFileType.File(mimeType = "application/octet-binary"),
+                result.getOrNull()?.type
+            )
+        }
+
+    @Test
+    fun `given file does not exist, when getting file metadata, DoesNotExist error is returned`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
+        }
+    // endregion fileMetadata sets
 }

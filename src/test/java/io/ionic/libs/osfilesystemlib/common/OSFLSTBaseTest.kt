@@ -1,7 +1,13 @@
 package io.ionic.libs.osfilesystemlib.common
 
+import android.os.Build
+import android.webkit.MimeTypeMap
+import io.ionic.libs.osfilesystemlib.controller.internal.OSFLSTBuildConfig
 import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -11,25 +17,31 @@ import java.util.Base64
 
 abstract class OSFLSTBaseTest {
     protected lateinit var testRootDirectory: File
-    protected val fileInRootDir: File get() = File(testRootDirectory, "file.txt")
-    protected val dirInRootDir: File get() = File(testRootDirectory, "dir")
+    protected val fileInRootDir: File get() = File(testRootDirectory, FILE_NAME_TXT)
+    protected val dirInRootDir: File get() = File(testRootDirectory, DIR_NAME)
     protected val fileInSubDir: File
         get() = File(
             File(testRootDirectory, "subdir1/subdir2"),
-            "doc.pdf"
+            FILE_NAME_PDF
         )
     protected val dirInSubDir: File
         get() = File(
-            File(testRootDirectory, "subdir1/subdir2"),
-            "directory"
+            File(testRootDirectory, "subdir3/subdir4"),
+            SUBDIR_NAME
         )
 
     protected abstract fun additionalSetups()
     protected open fun additionalTearDowns() {}
 
+    protected fun mockkMimeTypeMap(mimeType: String?) {
+        every { MimeTypeMap.getSingleton() } returns mockk {
+            every { getMimeTypeFromExtension(any()) } returns mimeType
+        }
+    }
+
     @Before
     fun setUp() {
-        testRootDirectory = File(System.getProperty("java.io.tmpdir"), "testDir").apply {
+        testRootDirectory = File(System.getProperty("java.io.tmpdir"), ROOT_DIR_NAME).apply {
             mkdirs()
         }
         // these asserts are to make sure the code in `tearDown`,
@@ -49,13 +61,30 @@ abstract class OSFLSTBaseTest {
             Base64.getDecoder().decode(args.first() as ByteArray)
         }
 
+        mockkObject(OSFLSTBuildConfig)
+        every { OSFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.VANILLA_ICE_CREAM
+        mockkStatic(MimeTypeMap::class)
+        mockkMimeTypeMap(PDF_MIME_TYPE)
+
         additionalSetups()
     }
 
     @After
     fun tearDown() {
+        unmockkStatic(MimeTypeMap::class)
+        unmockkObject(OSFLSTBuildConfig)
         unmockkStatic(android.util.Base64::class)
         testRootDirectory.deleteRecursively()
         additionalTearDowns()
+    }
+
+    companion object {
+        const val ROOT_DIR_NAME = "testDir"
+        const val FILE_NAME_TXT = "file.txt"
+        const val FILE_NAME_PDF = "doc.pdf"
+        const val DIR_NAME = "dir"
+        const val SUBDIR_NAME = "directory"
+        const val TEXT_MIME_TYPE = "text/plain"
+        const val PDF_MIME_TYPE = "application/pdf"
     }
 }

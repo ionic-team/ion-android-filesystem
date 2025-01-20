@@ -1,6 +1,8 @@
 package io.ionic.libs.osfilesystemlib.model
 
 sealed class OSFLSTExceptions(message: String) : Exception(message) {
+    class UnresolvableUri(uri: String) : OSFLSTExceptions("Unable to resolve the provided uri=$uri")
+
     sealed class CreateFailed(message: String) : OSFLSTExceptions(message) {
         class Unknown : CreateFailed("Failed to create file/directory due to unknown reason")
         class AlreadyExists : CreateFailed("The file/directory already exists")

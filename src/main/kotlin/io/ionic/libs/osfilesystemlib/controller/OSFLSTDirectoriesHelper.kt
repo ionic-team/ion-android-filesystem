@@ -30,7 +30,6 @@ class OSFLSTDirectoriesHelper {
     suspend fun deleteDirectory(options: OSFLSTDeleteOptions): Result<Unit> =
         withContext(Dispatchers.IO) { deleteDirOrFile(options) }
 
-
     /**
      * List the contents of a directory
      *

@@ -15,25 +15,31 @@ class OSFLSTDirectoriesHelper {
     /**
      * Create a directory
      *
+     * @param fullPath the full path to the directory to create
      * @param options options to create the directory
      * @return success if the directory was created successfully, error otherwise
      */
-    suspend fun createDirectory(options: OSFLSTCreateOptions): Result<Unit> =
-        withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = true) }
+    suspend fun createDirectory(
+        fullPath: String,
+        options: OSFLSTCreateOptions
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        createDirOrFile(fullPath, options, isDirectory = true)
+    }
 
     /**
      * Delete or directory
      *
+     * @param fullPath the full path of the directory to delete
      * @param options options to delete the directory
      * @return success if the directory was deleted successfully, error otherwise
      */
-    suspend fun deleteDirectory(options: OSFLSTDeleteOptions): Result<Unit> =
-        withContext(Dispatchers.IO) { deleteDirOrFile(options) }
+    suspend fun deleteDirectory(fullPath: String, options: OSFLSTDeleteOptions): Result<Unit> =
+        withContext(Dispatchers.IO) { deleteDirOrFile(fullPath, options) }
 
     /**
      * List the contents of a directory
      *
-     * @param fullPath path to the directory
+     * @param fullPath full path to the directory
      * @return success with list of metadata information for each file / sub-directory, error otherwise
      */
     suspend fun listDirectory(fullPath: String): Result<List<OSFLSTMetadataResult>> =

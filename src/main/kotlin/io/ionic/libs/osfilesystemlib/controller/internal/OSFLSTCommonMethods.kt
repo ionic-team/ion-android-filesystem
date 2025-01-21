@@ -21,13 +21,18 @@ private const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
  *
  * Most logic is common to both, except the actual creation
  *
+ * @param fullPath full path to the file/directory to create
  * @param options options to create the file/directory
  * @param isDirectory true if meant to create directory, false if meant to create file
  * @return success if the file/directory was created successfully, error otherwise
  */
-internal fun createDirOrFile(options: OSFLSTCreateOptions, isDirectory: Boolean): Result<Unit> =
+internal fun createDirOrFile(
+    fullPath: String,
+    options: OSFLSTCreateOptions,
+    isDirectory: Boolean
+): Result<Unit> =
     runCatching {
-        val file = File(options.fullPath)
+        val file = File(fullPath)
         if (file.exists()) {
             if (options.exclusive) {
                 throw OSFLSTExceptions.CreateFailed.AlreadyExists()
@@ -52,11 +57,15 @@ internal fun createDirOrFile(options: OSFLSTCreateOptions, isDirectory: Boolean)
 /**
  * Delete a file or directory
  *
+ * @param fullPath full path to the file/directory to delete
  * @param options options to delete the file/directory
  * @return success if the file/directory was deleted successfully, error otherwise
  */
-internal fun deleteDirOrFile(options: OSFLSTDeleteOptions): Result<Unit> = runCatching {
-    val file = File(options.fullPath)
+internal fun deleteDirOrFile(
+    fullPath: String,
+    options: OSFLSTDeleteOptions
+): Result<Unit> = runCatching {
+    val file = File(fullPath)
     if (!file.exists()) {
         throw OSFLSTExceptions.DoesNotExist()
     }

@@ -27,39 +27,44 @@ class OSFLSTLocalFilesHelper {
     /**
      * Create a file
      *
+     * @param fullPath full path to the file to create
      * @param options options to create the file
      * @return success if the file was created successfully, error otherwise
      */
-    suspend fun createFile(options: OSFLSTCreateOptions): Result<Unit> =
-        withContext(Dispatchers.IO) { createDirOrFile(options, isDirectory = false) }
+    suspend fun createFile(fullPath: String, options: OSFLSTCreateOptions): Result<Unit> =
+        withContext(Dispatchers.IO) { createDirOrFile(fullPath, options, isDirectory = false) }
 
     /**
      * Delete a file
-     *
+
      * @param fullPath the full path to the file
      * @return success if the file was deleted successfully, error otherwise
      */
     suspend fun deleteFile(fullPath: String): Result<Unit> =
         withContext(Dispatchers.IO) {
-            deleteDirOrFile(OSFLSTDeleteOptions(fullPath, recursive = false))
+            deleteDirOrFile(fullPath, OSFLSTDeleteOptions(recursive = false))
         }
 
     /**
      * Saves data to a file
      *
+     * @param fullPath full path to the file to save
      * @param options options to save the file
      * @return success if the file was saved successfully, error otherwise
      */
-    suspend fun saveFile(options: OSFLSTSaveOptions): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun saveFile(
+        fullPath: String,
+        options: OSFLSTSaveOptions
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val file = File(options.fullPath)
+            val file = File(fullPath)
             if (!file.exists()) {
                 if (options.createFileRecursive == null) {
                     throw OSFLSTExceptions.DoesNotExist()
                 } else {
                     val createFileResult = createFile(
+                        fullPath,
                         OSFLSTCreateOptions(
-                            options.fullPath,
                             recursive = options.createFileRecursive,
                             exclusive = false
                         )
@@ -88,13 +93,17 @@ class OSFLSTLocalFilesHelper {
 
     /**
      * Reads contents of a file
-     *
+
+     * @param fullPath full path of the file to read from
      * @param options options for reading the file
      * @return success with file contents string if it was read successfully, error otherwise
      */
-    suspend fun readFile(options: OSFLSTReadOptions): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun readFile(
+        fullPath: String,
+        options: OSFLSTReadOptions
+    ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            val file = File(options.fullPath)
+            val file = File(fullPath)
             if (!file.exists()) {
                 throw OSFLSTExceptions.DoesNotExist()
             }

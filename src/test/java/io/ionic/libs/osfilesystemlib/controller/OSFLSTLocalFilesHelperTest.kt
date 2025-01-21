@@ -37,7 +37,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+                sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(file.exists())
@@ -51,7 +51,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
+                sut.createFile(path, OSFLSTCreateOptions(recursive = true, exclusive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(file.exists())
@@ -65,7 +65,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+                sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.CreateFailed.NoParentDirectory)
@@ -78,7 +78,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
     fun `given file exists, when we delete it, success is returned`() = runTest {
         val file = fileInRootDir
         val path = file.absolutePath
-        sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+        sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
         val result = sut.deleteFile(path)
 
@@ -104,12 +104,12 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val data = "Write"
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     data,
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -126,12 +126,12 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val data = "Append"
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     data,
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.APPEND,
@@ -148,13 +148,13 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val dataBase64 =
                 Base64.getEncoder().encodeToString("Base 64 w/ special ch4rsª~´".toByteArray())
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     dataBase64,
                     encoding = OSFLSTEncoding.Base64,
                     mode = OSFLSTSaveMode.WRITE,
@@ -171,11 +171,9 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
-            val result = sut.readFile(
-                OSFLSTReadOptions(path, encoding = OSFLSTEncoding.Default)
-            )
+            val result = sut.readFile(path, OSFLSTReadOptions(encoding = OSFLSTEncoding.Default))
 
             assertTrue(result.isSuccess)
             assertEquals("", result.getOrNull())
@@ -186,16 +184,15 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val data = "Text"
             sut.saveFile(
-                OSFLSTSaveOptions(
-                    path, data, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false
-                )
+                path,
+                OSFLSTSaveOptions(data, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false)
             )
 
             val result = sut.readFile(
-                OSFLSTReadOptions(path, encoding = OSFLSTEncoding.DefaultCharset)
+                path, OSFLSTReadOptions(encoding = OSFLSTEncoding.DefaultCharset)
             )
 
             assertTrue(result.isSuccess)
@@ -207,16 +204,15 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val data = Base64.getEncoder().encodeToString("Base 64 +/ =!\uD83D\uDE00".toByteArray())
             sut.saveFile(
-                OSFLSTSaveOptions(
-                    path, data, OSFLSTEncoding.Base64, OSFLSTSaveMode.WRITE, false
-                )
+                path,
+                OSFLSTSaveOptions(data, OSFLSTEncoding.Base64, OSFLSTSaveMode.WRITE, false)
             )
 
             val result = sut.readFile(
-                OSFLSTReadOptions(path, encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8))
+                path, OSFLSTReadOptions(encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8))
             )
 
             assertTrue(result.isSuccess)
@@ -228,17 +224,16 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val base64 = Base64.getEncoder().encodeToString("Base 64 +/ =!  ".toByteArray())
             val data = "data:textPlain;base64, $base64"
             sut.saveFile(
-                OSFLSTSaveOptions(
-                    path, data, OSFLSTEncoding.Base64, OSFLSTSaveMode.WRITE, false
-                )
+                path,
+                OSFLSTSaveOptions(data, OSFLSTEncoding.Base64, OSFLSTSaveMode.WRITE, false)
             )
 
             val result = sut.readFile(
-                OSFLSTReadOptions(path, encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8))
+                path, OSFLSTReadOptions(encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8))
             )
 
             // This test is to make sure we are not assuming that the contents com as a url
@@ -252,19 +247,16 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val data = "Lorem ipsum"
             sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
-                    data,
-                    OSFLSTEncoding.WithCharset(Charsets.UTF_8),
-                    OSFLSTSaveMode.WRITE,
-                    false
+                    data, OSFLSTEncoding.WithCharset(Charsets.UTF_8), OSFLSTSaveMode.WRITE, false
                 )
             )
 
-            val result = sut.readFile(OSFLSTReadOptions(path, encoding = OSFLSTEncoding.Base64))
+            val result = sut.readFile(path, OSFLSTReadOptions(encoding = OSFLSTEncoding.Base64))
 
             assertTrue(result.isSuccess)
             assertEquals("TG9yZW0gaXBzdW0=", result.getOrNull())
@@ -275,25 +267,26 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val originalData = "Original"
             sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path, originalData, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false
+                    originalData, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false
                 )
             )
             val newData = "New content"
 
             val saveResult = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     newData,
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
                     createFileRecursive = false
                 )
             )
-            val readResult = sut.readFile(OSFLSTReadOptions(path, OSFLSTEncoding.DefaultCharset))
+            val readResult = sut.readFile(path, OSFLSTReadOptions(OSFLSTEncoding.DefaultCharset))
 
             assertTrue(saveResult.isSuccess)
             assertEquals("New content", readResult.getOrNull())
@@ -304,25 +297,26 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             val originalData = "Original"
             sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path, originalData, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false
+                    originalData, OSFLSTEncoding.DefaultCharset, OSFLSTSaveMode.WRITE, false
                 )
             )
             val newData = "\n\n\t-> New content"
 
             val saveResult = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     newData,
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.APPEND,
                     createFileRecursive = false
                 )
             )
-            val readResult = sut.readFile(OSFLSTReadOptions(path, OSFLSTEncoding.DefaultCharset))
+            val readResult = sut.readFile(path, OSFLSTReadOptions(OSFLSTEncoding.DefaultCharset))
 
             assertTrue(saveResult.isSuccess)
             assertEquals(originalData + newData, readResult.getOrNull())
@@ -335,8 +329,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     "any data...",
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -355,8 +349,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     "any data...",
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -375,8 +369,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     "any data...",
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -395,8 +389,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = file.absolutePath
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     "any data...",
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -413,12 +407,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         val file = fileInRootDir
         val path = file.absolutePath
 
-        val result = sut.readFile(
-            OSFLSTReadOptions(
-                path,
-                encoding = OSFLSTEncoding.Default
-            )
-        )
+        val result = sut.readFile(path, OSFLSTReadOptions(encoding = OSFLSTEncoding.Default))
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
@@ -432,8 +421,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
 
 
             val result = sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     "any data...",
                     // this would result in an error because the provided data is not base64
                     //  however because we are providing a directory, the method should return before base64 conversion
@@ -453,7 +442,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val dir = testRootDirectory
             val path = dir.absolutePath
 
-            val result = sut.readFile(OSFLSTReadOptions(path, OSFLSTEncoding.Default))
+            val result = sut.readFile(path, OSFLSTReadOptions(OSFLSTEncoding.Default))
 
             // error is thrown on java.io side, exception is returned as-is
             assertTrue(result.isFailure)
@@ -466,7 +455,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             mockkMimeTypeMap(TEXT_MIME_TYPE)
             val path = fileInRootDir.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -500,8 +489,8 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             val path = fileInRootDir.absolutePath
             val plainTextData = "Text"
             sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     data = plainTextData,
                     encoding = OSFLSTEncoding.WithCharset(Charsets.UTF_8),
                     mode = OSFLSTSaveMode.WRITE,
@@ -519,11 +508,11 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
     fun `given file is updated after creation, when getting file metadata, the lastModifiedTimestamp is more recent than the created`() =
         runTest {
             val path = fileInRootDir.absolutePath
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
             testScheduler.advanceTimeBy(60_000L)
             sut.saveFile(
+                path,
                 OSFLSTSaveOptions(
-                    path,
                     data = "1",
                     encoding = OSFLSTEncoding.DefaultCharset,
                     mode = OSFLSTSaveMode.WRITE,
@@ -544,7 +533,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = fileInRootDir.absolutePath
             every { OSFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.N
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -557,7 +546,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = File(testRootDirectory, "audio_file.3ga").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -570,7 +559,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = File(testRootDirectory, "code.js").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -586,7 +575,7 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = File(testRootDirectory, "fileWithoutExtension").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             val result = sut.getFileMetadata(path)
 

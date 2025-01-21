@@ -30,7 +30,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = dir.absolutePath
 
             val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+                sut.createDirectory(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -44,7 +44,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = dir.absolutePath
 
             val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
+                sut.createDirectory(path, OSFLSTCreateOptions(recursive = true, exclusive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -58,7 +58,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = dir.absolutePath
 
             val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+                sut.createDirectory(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.CreateFailed.NoParentDirectory)
@@ -72,7 +72,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = existingDir.absolutePath
 
             val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = true))
+                sut.createDirectory(path, OSFLSTCreateOptions(recursive = true, exclusive = true))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.CreateFailed.AlreadyExists)
@@ -86,7 +86,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = existingDir.absolutePath
 
             val result =
-                sut.createDirectory(OSFLSTCreateOptions(path, recursive = true, exclusive = false))
+                sut.createDirectory(path, OSFLSTCreateOptions(recursive = true, exclusive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(existingDir.exists())
@@ -99,9 +99,9 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
         runTest {
             val dir = dirInRootDir
             val path = dir.absolutePath
-            sut.createDirectory(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+            sut.createDirectory(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
 
-            val result = sut.deleteDirectory(OSFLSTDeleteOptions(path, recursive = false))
+            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = false))
 
             assertTrue(result.isSuccess)
             assertFalse(dir.exists())
@@ -113,10 +113,10 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(OSFLSTCreateOptions(dirPath, recursive = true, exclusive = false))
+            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
 
             val result =
-                sut.deleteDirectory(OSFLSTDeleteOptions(dirToDelete.absolutePath, recursive = true))
+                sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(true))
 
             assertTrue(result.isSuccess)
             assertFalse(dirToDelete.exists() && dir.exists())
@@ -128,14 +128,9 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(OSFLSTCreateOptions(dirPath, recursive = true, exclusive = false))
+            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
 
-            val result = sut.deleteDirectory(
-                OSFLSTDeleteOptions(
-                    dirToDelete.absolutePath,
-                    recursive = false
-                )
-            )
+            val result = sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.CannotDeleteChildren)
@@ -148,7 +143,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val dir = dirInRootDir
             val path = dir.absolutePath
 
-            val result = sut.deleteDirectory(OSFLSTDeleteOptions(path, recursive = true))
+            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = true))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
@@ -172,8 +167,8 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             val path = testRootDirectory.absolutePath
             val data = "Text"
             OSFLSTLocalFilesHelper().saveFile(
+                fileInRootDir.absolutePath,
                 OSFLSTSaveOptions(
-                    fileInRootDir.absolutePath,
                     data,
                     OSFLSTEncoding.DefaultCharset,
                     OSFLSTSaveMode.WRITE,
@@ -196,7 +191,7 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = testRootDirectory.absolutePath
             sut.createDirectory(
-                OSFLSTCreateOptions(dirInRootDir.absolutePath, recursive = false, exclusive = false)
+                dirInRootDir.absolutePath, OSFLSTCreateOptions(recursive = false, exclusive = false)
             )
 
             val result = sut.listDirectory(path)
@@ -214,11 +209,11 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
         runTest {
             val path = testRootDirectory.absolutePath
             sut.createDirectory(
-                OSFLSTCreateOptions(dirInSubDir.absolutePath, recursive = true, exclusive = false)
+                dirInSubDir.absolutePath, OSFLSTCreateOptions(recursive = true, exclusive = false)
             )
             OSFLSTLocalFilesHelper().saveFile(
+                fileInSubDir.absolutePath,
                 OSFLSTSaveOptions(
-                    fileInSubDir.absolutePath,
                     "File",
                     OSFLSTEncoding.DefaultCharset,
                     OSFLSTSaveMode.WRITE,

@@ -3,7 +3,6 @@ package io.ionic.libs.osfilesystemlib.model
 /**
  * Parameters for saving data to a file
  *
- * @param fullPath the full path to the file to save to
  * @param data string contents to save in the file
  * @param encoding how the data is encoded as;
  *  for example if it is base64 then it will be decoded before writing; see [OSFLSTEncoding]
@@ -13,7 +12,6 @@ package io.ionic.libs.osfilesystemlib.model
  *  null if not meant to create the file, returns error if file does not exist
  */
 data class OSFLSTSaveOptions(
-    val fullPath: String,
     val data: String,
     val encoding: OSFLSTEncoding,
     val mode: OSFLSTSaveMode,

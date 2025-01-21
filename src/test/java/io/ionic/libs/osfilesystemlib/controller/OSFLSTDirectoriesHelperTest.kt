@@ -93,63 +93,6 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
         }
     // endregion createDirectory tests
 
-    // region deleteDirectory tests
-    @Test
-    fun `given empty directory exists, when we delete it with recursive=false, success is returned`() =
-        runTest {
-            val dir = dirInRootDir
-            val path = dir.absolutePath
-            sut.createDirectory(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
-
-            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = false))
-
-            assertTrue(result.isSuccess)
-            assertFalse(dir.exists())
-        }
-
-    @Test
-    fun `given non-empty directory exists, when we delete it with recursive=true, all children are deleted and success is returned`() =
-        runTest {
-            val dir = dirInSubDir
-            val dirPath = dir.absolutePath
-            val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
-
-            val result =
-                sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(true))
-
-            assertTrue(result.isSuccess)
-            assertFalse(dirToDelete.exists() && dir.exists())
-        }
-
-    @Test
-    fun `given non-empty directory exists, when we delete it with recursive=false, CannotDeleteChildren error is returned`() =
-        runTest {
-            val dir = dirInSubDir
-            val dirPath = dir.absolutePath
-            val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
-
-            val result = sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(false))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.CannotDeleteChildren)
-            assertTrue(dirToDelete.exists() && dir.exists())
-        }
-
-    @Test
-    fun `given directory does not exist, when we delete it, DoesNotExist error is returned`() =
-        runTest {
-            val dir = dirInRootDir
-            val path = dir.absolutePath
-
-            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = true))
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
-        }
-    // endregion deleteDirectory tests
-
     // region listDirectory tests
     @Test
     fun `given directory is empty, when listing directory, empty list is returned`() = runTest {
@@ -241,4 +184,61 @@ class OSFLSTDirectoriesHelperTest : OSFLSTBaseTest() {
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
         }
     // endregion listDirectory tests
+
+    // region deleteDirectory tests
+    @Test
+    fun `given empty directory exists, when we delete it with recursive=false, success is returned`() =
+        runTest {
+            val dir = dirInRootDir
+            val path = dir.absolutePath
+            sut.createDirectory(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
+
+            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = false))
+
+            assertTrue(result.isSuccess)
+            assertFalse(dir.exists())
+        }
+
+    @Test
+    fun `given non-empty directory exists, when we delete it with recursive=true, all children are deleted and success is returned`() =
+        runTest {
+            val dir = dirInSubDir
+            val dirPath = dir.absolutePath
+            val dirToDelete = dir.parentFile!!
+            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
+
+            val result =
+                sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(true))
+
+            assertTrue(result.isSuccess)
+            assertFalse(dirToDelete.exists() && dir.exists())
+        }
+
+    @Test
+    fun `given non-empty directory exists, when we delete it with recursive=false, CannotDeleteChildren error is returned`() =
+        runTest {
+            val dir = dirInSubDir
+            val dirPath = dir.absolutePath
+            val dirToDelete = dir.parentFile!!
+            sut.createDirectory(dirPath, OSFLSTCreateOptions(recursive = true, exclusive = false))
+
+            val result = sut.deleteDirectory(dirToDelete.absolutePath, OSFLSTDeleteOptions(false))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.CannotDeleteChildren)
+            assertTrue(dirToDelete.exists() && dir.exists())
+        }
+
+    @Test
+    fun `given directory does not exist, when we delete it, DoesNotExist error is returned`() =
+        runTest {
+            val dir = dirInRootDir
+            val path = dir.absolutePath
+
+            val result = sut.deleteDirectory(path, OSFLSTDeleteOptions(recursive = true))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
+        }
+    // endregion deleteDirectory tests
 }

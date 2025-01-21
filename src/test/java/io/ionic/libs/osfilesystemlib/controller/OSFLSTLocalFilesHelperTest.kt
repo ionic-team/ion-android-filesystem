@@ -73,31 +73,6 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         }
     // endregion createFile tests
 
-    // region deleteFile tests
-    @Test
-    fun `given file exists, when we delete it, success is returned`() = runTest {
-        val file = fileInRootDir
-        val path = file.absolutePath
-        sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
-
-        val result = sut.deleteFile(path)
-
-        assertTrue(result.isSuccess)
-        assertFalse(file.exists())
-    }
-
-    @Test
-    fun `given file does not exist, when we delete it, DoesNotExist error is returned`() = runTest {
-        val file = fileInRootDir
-        val path = file.absolutePath
-
-        val result = sut.deleteFile(path)
-
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
-    }
-    // endregion deleteFile tests
-
     // region save + read file tests
     @Test
     fun `given empty file exists, when saving contents to file as write, success is returned`() =
@@ -597,4 +572,29 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
         }
     // endregion fileMetadata sets
+
+    // region deleteFile tests
+    @Test
+    fun `given file exists, when we delete it, success is returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        sut.createFile(path, OSFLSTCreateOptions(recursive = false, exclusive = false))
+
+        val result = sut.deleteFile(path)
+
+        assertTrue(result.isSuccess)
+        assertFalse(file.exists())
+    }
+
+    @Test
+    fun `given file does not exist, when we delete it, DoesNotExist error is returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+
+        val result = sut.deleteFile(path)
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
+    }
+    // endregion deleteFile tests
 }

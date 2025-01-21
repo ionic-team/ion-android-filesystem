@@ -12,6 +12,25 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class OSFLSTDirectoriesHelper {
+
+    /**
+     * List the contents of a directory
+     *
+     * @param fullPath full path to the directory
+     * @return success with list of metadata information for each file / sub-directory, error otherwise
+     */
+    suspend fun listDirectory(fullPath: String): Result<List<OSFLSTMetadataResult>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val file = File(fullPath)
+                if (!file.exists()) {
+                    throw OSFLSTExceptions.DoesNotExist()
+                }
+                val directoryEntries = file.listFiles()?.toList() ?: emptyList()
+                directoryEntries.filterNotNull().map { getMetadata(it) }
+            }
+        }
+
     /**
      * Create a directory
      *
@@ -35,22 +54,4 @@ class OSFLSTDirectoriesHelper {
      */
     suspend fun deleteDirectory(fullPath: String, options: OSFLSTDeleteOptions): Result<Unit> =
         withContext(Dispatchers.IO) { deleteDirOrFile(fullPath, options) }
-
-    /**
-     * List the contents of a directory
-     *
-     * @param fullPath full path to the directory
-     * @return success with list of metadata information for each file / sub-directory, error otherwise
-     */
-    suspend fun listDirectory(fullPath: String): Result<List<OSFLSTMetadataResult>> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val file = File(fullPath)
-                if (!file.exists()) {
-                    throw OSFLSTExceptions.DoesNotExist()
-                }
-                val directoryEntries = file.listFiles()?.toList() ?: emptyList()
-                directoryEntries.filterNotNull().map { getMetadata(it) }
-            }
-        }
 }

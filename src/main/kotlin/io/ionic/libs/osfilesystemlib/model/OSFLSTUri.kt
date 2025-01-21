@@ -6,9 +6,10 @@ sealed class OSFLSTUri {
     /**
      * Uri that is unresolved, and it is unknown what kind of uri it can be.
      *
-     * Can have a parentFolder to indicate that the uri is for a  local file inside that folder
-     * For folder types refer to [OSFLSTFolderType].
-     * If null, will assume that the entire uri to resolve appears inside uriPath
+     * @param parentFolder type of parent folder; indicates that the uri is for a  local file inside that folde.
+     *  For folder types refer to [OSFLSTFolderType].
+     *  If null, will assume that the entire uri to resolve appears inside uriPath
+     * @param uriPath the actual full uri path (or partial, to be combined with parentFolder if not null)
      */
     data class Unresolved(
         val parentFolder: OSFLSTFolderType?,
@@ -16,20 +17,26 @@ sealed class OSFLSTUri {
     ) : OSFLSTUri()
 
     /**
-     * Uri that was resolved and is now of a known type
+     * Uri that was resolved and is now of a known type.
+     *
+     * Note that just because it is resolved, does not mean that the underlying file exists.
      */
-    sealed class Resolved : OSFLSTUri() {
+    sealed class Resolved(open val uri: Uri) : OSFLSTUri() {
         /**
          * Uri of content scheme (e.g. content://media...)
          */
-        data class Content(val uri: Uri) : Resolved()
+        data class Content(override val uri: Uri) : Resolved(uri)
 
         /**
          * Complete file path pointing to local file
          *
          * With the Uri being of type file://
          */
-        data class Local(val fullPath: String, val uri: Uri, val type: LocalUriType) : Resolved()
+        data class Local(
+            val fullPath: String,
+            override val uri: Uri,
+            val type: LocalUriType
+        ) : Resolved(uri)
     }
 }
 

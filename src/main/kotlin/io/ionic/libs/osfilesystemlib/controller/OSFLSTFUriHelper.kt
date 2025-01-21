@@ -15,7 +15,6 @@ private const val CONTENT_SCHEME_NAME = "content"
 private const val CONTENT_SCHEME = "$CONTENT_SCHEME_NAME://"
 private const val SYNTHETIC_URI_PREFIX = "/synthetic/"
 private const val FILE_SCHEME_NAME = "file"
-private const val FILE_SCHEME = "$FILE_SCHEME_NAME://"
 
 class OSFLSTFUriHelper {
 
@@ -27,12 +26,12 @@ class OSFLSTFUriHelper {
         val resolvedUri = if (parentFolderObject == null) {
             val parsedUri = Uri.parse(unresolvedUri.uriPath)
             when {
-                parsedUri.scheme.equals(CONTENT_SCHEME) -> resolveAsContentUri(parsedUri)
+                parsedUri.scheme == CONTENT_SCHEME_NAME -> resolveAsContentUri(parsedUri)
 
                 unresolvedUri.uriPath.contains(SYNTHETIC_URI_PREFIX) ->
                     resolveAsContentUri(convertSyntheticToContentUri(unresolvedUri.uriPath))
 
-                parsedUri.scheme.equals(FILE_SCHEME_NAME) -> resolveAsLocalFile(
+                parsedUri.scheme == FILE_SCHEME_NAME -> resolveAsLocalFile(
                     parentFolderFileObject = null,
                     parsedUri.path ?: ""
                 )
@@ -51,7 +50,6 @@ class OSFLSTFUriHelper {
     }
 
     private fun resolveAsContentUri(uri: Uri): OSFLSTUri.Resolved.Content {
-        // TODO confirm that uri encodings are working
         return OSFLSTUri.Resolved.Content(uri)
     }
 
@@ -64,10 +62,9 @@ class OSFLSTFUriHelper {
         } else {
             File(localPath)
         }
-        val fullPath = localFileObject.path
-        val fileUri = Uri.parse("$FILE_SCHEME$fullPath")
+        val fileUri = Uri.fromFile(localFileObject)
         return@withContext OSFLSTUri.Resolved.Local(
-            fullPath = fullPath,
+            fullPath = localFileObject.path,
             uri = fileUri,
             type = try {
                 when {
@@ -84,10 +81,14 @@ class OSFLSTFUriHelper {
     }
 
     private fun convertSyntheticToContentUri(path: String): Uri {
-        val location = path.substring(
-            path.lastIndexOf(SYNTHETIC_URI_PREFIX) + SYNTHETIC_URI_PREFIX.length,
-            path.lastIndexOf('.')
-        )
+        val syntheticPathEndIndex =
+            path.lastIndexOf(SYNTHETIC_URI_PREFIX) + SYNTHETIC_URI_PREFIX.length
+        val extensionIndex = path.lastIndexOf('.')
+        if (extensionIndex < syntheticPathEndIndex) {
+            // the path has no extension, meaning it cannot really be a file mapped to content:// scheme
+            throw OSFLSTExceptions.UnresolvableUri(path)
+        }
+        val location = path.substring(syntheticPathEndIndex, extensionIndex)
         val contentUriPrefix: String = CONTENT_SCHEME + "media/"
         return Uri.parse(contentUriPrefix + location)
     }

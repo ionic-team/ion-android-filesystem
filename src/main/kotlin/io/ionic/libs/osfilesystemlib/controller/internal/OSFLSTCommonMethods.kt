@@ -108,7 +108,16 @@ internal fun getMetadata(fileObject: File): OSFLSTMetadataResult = OSFLSTMetadat
  */
 private fun getMimeType(fileObject: File): String {
     val extension = fileObject.extension.ifBlank { fileObject.path }
-    return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: FILE_MIME_TYPE_FALLBACK
+    var resolvedExtension: String? = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    if (resolvedExtension == null) {
+        // consider a few extensions that may be missing from android; otherwise return fallback
+        resolvedExtension = when (extension) {
+            "3ga" -> "audio/3gpp"
+            "js" -> "text/javascript"
+            else -> FILE_MIME_TYPE_FALLBACK
+        }
+    }
+    return resolvedExtension
 }
 
 /**

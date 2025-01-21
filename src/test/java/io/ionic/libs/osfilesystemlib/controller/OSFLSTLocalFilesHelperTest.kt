@@ -553,6 +553,35 @@ class OSFLSTLocalFilesHelperTest : OSFLSTBaseTest() {
         }
 
     @Test
+    fun `given 3ga file, when getting file metadata, type is File with audio 3gpp mimeType`() =
+        runTest {
+            val path = File(testRootDirectory, "audio_file.3ga").absolutePath
+            mockkMimeTypeMap(null)
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            assertEquals(OSFLSTFileType.File(mimeType = "audio/3gpp"), result.getOrNull()?.type)
+        }
+
+    @Test
+    fun `given js file, when getting file metadata, type is File with text javascript mimeType`() =
+        runTest {
+            val path = File(testRootDirectory, "code.js").absolutePath
+            mockkMimeTypeMap(null)
+            sut.createFile(OSFLSTCreateOptions(path, recursive = false, exclusive = false))
+
+            val result = sut.getFileMetadata(path)
+
+            assertTrue(result.isSuccess)
+            assertEquals(
+                OSFLSTFileType.File(mimeType = "text/javascript"),
+                result.getOrNull()?.type
+            )
+        }
+
+    @Test
     fun `given unknown mimetype, when getting file metadata, type is File with fallback mimeType`() =
         runTest {
             val path = File(testRootDirectory, "fileWithoutExtension").absolutePath

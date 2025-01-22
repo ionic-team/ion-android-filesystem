@@ -13,6 +13,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.math.min
 
+// common methods and variables to different OSFLST helpers
 
 private const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
 

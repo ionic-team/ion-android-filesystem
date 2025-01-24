@@ -3,6 +3,7 @@ package io.ionic.libs.osfilesystemlib.controller
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import io.ionic.libs.osfilesystemlib.common.OSFLSTBaseTest.Companion.fileUriWithEncodings
 import io.ionic.libs.osfilesystemlib.model.LocalUriType
 import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
 import io.ionic.libs.osfilesystemlib.model.OSFLSTFolderType
@@ -235,11 +236,4 @@ class OSFLSTFUriHelperTest {
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is OSFLSTExceptions.UnresolvableUri)
         }
-
-    /**
-     * Uri.parse expects a the uri string to already be encoded, so this is a small helper method
-     *  to make sure that spaces and other characters get encoded
-     */
-    private fun fileUriWithEncodings(uriString: String): Uri =
-        Uri.parse(Uri.encode(uriString, "/:"))
 }

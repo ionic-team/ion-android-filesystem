@@ -17,4 +17,8 @@ sealed class OSFLSTExceptions(message: String) : Exception(message) {
     }
 
     class DoesNotExist : OSFLSTExceptions("The file/directory does not exist")
+
+    class UnknownError : OSFLSTExceptions("An unknown error occurred.")
+
+    class NotAllowed : OSFLSTExceptions("Unable to execute the requested operation on the file")
 }

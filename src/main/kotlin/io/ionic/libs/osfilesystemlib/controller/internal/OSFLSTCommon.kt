@@ -15,7 +15,7 @@ import kotlin.math.min
 
 // common methods and variables to different OSFLST helpers
 
-private const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
+internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
 
 /**
  * Create a directory or file

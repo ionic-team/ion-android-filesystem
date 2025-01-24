@@ -1,5 +1,6 @@
 package io.ionic.libs.osfilesystemlib.common
 
+import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import io.ionic.libs.osfilesystemlib.controller.internal.OSFLSTBuildConfig
@@ -86,5 +87,12 @@ abstract class OSFLSTBaseTest {
         const val SUBDIR_NAME = "directory"
         const val TEXT_MIME_TYPE = "text/plain"
         const val PDF_MIME_TYPE = "application/pdf"
+
+        /**
+         * Uri.parse expects a the uri string to already be encoded, so this is a small helper method
+         *  to make sure that spaces and other characters get encoded
+         */
+        fun fileUriWithEncodings(uriString: String): Uri =
+            Uri.parse(Uri.encode(uriString, "/:"))
     }
 }

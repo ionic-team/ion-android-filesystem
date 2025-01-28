@@ -1,7 +1,8 @@
 package io.ionic.libs.ionfilesystemlib.model
 
 sealed class IONFLSTExceptions(message: String) : Exception(message) {
-    class UnresolvableUri(uri: String) : IONFLSTExceptions("Unable to resolve the provided uri=$uri")
+    class UnresolvableUri(uri: String) :
+        IONFLSTExceptions("Unable to resolve the provided uri=$uri")
 
     sealed class CreateFailed(message: String) : IONFLSTExceptions(message) {
         class Unknown : CreateFailed("Failed to create file/directory due to unknown reason")
@@ -21,4 +22,13 @@ sealed class IONFLSTExceptions(message: String) : Exception(message) {
     class UnknownError : IONFLSTExceptions("An unknown error occurred.")
 
     class NotAllowed : IONFLSTExceptions("Unable to execute the requested operation on the file")
+
+    class NotSupportedForContentScheme :
+        IONFLSTExceptions("The requested operation is not supported on a content:// uri")
+
+    class NotSupportedForDirectory :
+        IONFLSTExceptions("The request operation is not supported on a directory")
+
+    class NotSupportedForFiles :
+        IONFLSTExceptions("The request operation is not supported on files, only directories")
 }

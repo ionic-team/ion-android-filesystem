@@ -1,9 +1,159 @@
 package io.ionic.libs.ionfilesystemlib
 
+import android.content.Context
+import android.net.Uri
+import io.ionic.libs.ionfilesystemlib.controller.IONFLSTContentHelper
+import io.ionic.libs.ionfilesystemlib.controller.IONFLSTDirectoriesHelper
+import io.ionic.libs.ionfilesystemlib.controller.IONFLSTFUriHelper
+import io.ionic.libs.ionfilesystemlib.controller.IONFLSTLocalFilesHelper
+import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolved
+import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsLocalDirectory
+import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsLocalFile
+import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsNonDirectory
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTUri
+import io.ionic.libs.ionfilesystemlib.model.LocalUriType
+
 /**
  * Entry point in IONFilesystemLib-Android
  *
+ * Contains all the methods for handling files.
+ *
+ * Usage: Just initialize the controller passing an Android [Context]
+ * `val controller = IONFLSTController(context)`
  */
-class IONFLSTController {
+class IONFLSTController(
+    context: Context,
+    private val uriHelper: IONFLSTFUriHelper = IONFLSTFUriHelper(context),
+    private val localFilesHelper: IONFLSTLocalFilesHelper = IONFLSTLocalFilesHelper(),
+    private val directoriesHelper: IONFLSTDirectoriesHelper = IONFLSTDirectoriesHelper(),
+    private val contentResolverHelper: IONFLSTContentHelper = IONFLSTContentHelper(context.contentResolver)
+) {
 
+    /**
+     * Resolve a uri for a file (or directory) and return it
+     *
+     * @param uri the uri to resolve; see [IONFLSTUri.Unresolved]
+     * @return success with [IONFLSTUri.Resolved] uri, or error otherwise
+     */
+    suspend fun getFileUri(uri: IONFLSTUri.Unresolved): Result<IONFLSTUri.Resolved> =
+        uriHelper.resolveUri(uri)
+
+    /**
+     * Create a file
+     *
+     * This method will fail if a "content://" type URI is passed
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual path
+     * @param options options to configure file creation; see [IONFLSTCreateOptions]
+     * @return success with the android "file://" [Uri] that was created, or error otherwise
+     */
+    suspend fun createFile(uri: IONFLSTUri, options: IONFLSTCreateOptions): Result<Uri> =
+        uriHelper.useUriIfResolvedAsLocalFile(uri) { resolvedUri ->
+            localFilesHelper.createFile(resolvedUri.fullPath, options).map { resolvedUri.uri }
+        }
+
+    /**
+     * Create a directory
+     *
+     * This method will fail if a "content://" type URI is passed
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual path
+     * @param options options to configure directory creation; see [IONFLSTCreateOptions]
+     * @return success with the android "file://" [Uri] that was created, or error otherwise
+     */
+    suspend fun createDirectory(uri: IONFLSTUri, options: IONFLSTCreateOptions): Result<Uri> =
+        uriHelper.useUriIfResolvedAsLocalDirectory(uri) { resolvedUri ->
+            directoriesHelper.createDirectory(resolvedUri.fullPath, options).map { resolvedUri.uri }
+        }
+
+    /**
+     * Read the contents of a file
+     *
+     * This method will fail if a directory path is passed.
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual file
+     * @param options the options for customizing file reading; see [IONFLSTReadOptions]
+     */
+    suspend fun readFile(
+        uri: IONFLSTUri,
+        options: IONFLSTReadOptions
+    ): Result<String> = uriHelper.useUriIfResolvedAsNonDirectory(uri) { resolvedUri ->
+        if (resolvedUri is IONFLSTUri.Resolved.Local) {
+            localFilesHelper.readFile(resolvedUri.fullPath, options)
+        } else {
+            contentResolverHelper.readFile(resolvedUri.uri, options)
+        }
+    }
+
+    /**
+     * Get metadata / information on a file or directory
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual file
+     * @return success with a [IONFLSTMetadataResult] object containing information on the file, or error otherwise
+     */
+    suspend fun getMetadata(uri: IONFLSTUri): Result<IONFLSTMetadataResult> =
+        uriHelper.useUriIfResolved(uri) { resolvedUri ->
+            if (resolvedUri is IONFLSTUri.Resolved.Local) {
+                localFilesHelper.getFileMetadata(resolvedUri.fullPath)
+            } else {
+                contentResolverHelper.getFileMetadata(resolvedUri.uri)
+            }
+        }
+
+    /**
+     * Save contents to a file
+     *
+     * This method will fail if a "content://" type URI is passed
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual file
+     * @param options data and options for configuring file saving; see [IONFLSTSaveOptions]
+     * @return success with the android [Uri] that was saved to, or error otherwise
+     */
+    suspend fun saveFile(
+        uri: IONFLSTUri,
+        options: IONFLSTSaveOptions
+    ): Result<Uri> = uriHelper.useUriIfResolvedAsLocalFile(uri) { resolvedLocalFile ->
+        localFilesHelper.saveFile(resolvedLocalFile.fullPath, options)
+            .map { resolvedLocalFile.uri }
+    }
+
+    /**
+     * List the contents of a directory - all children including files and directories
+     *
+     * This method is not recursive, meaning that if the directories has sub-directories, the children of these will not be listed
+     *
+     * This method will fail if a file is passed instead of a directory
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual directory
+     * @return success with list of [IONFLSTMetadataResult] objects containing information about directory's children, or error otherwise
+     */
+    suspend fun listDirectory(uri: IONFLSTUri): Result<List<IONFLSTMetadataResult>> =
+        uriHelper.useUriIfResolvedAsLocalDirectory(uri) { resolvedUri ->
+            directoriesHelper.listDirectory(resolvedUri.fullPath)
+        }
+
+    /**
+     * Delete a file or directory
+     *
+     * @param uri a [IONFLSTUri] object, may need resolving to determine the actual path
+     * @param options the options to configure deletion; only applies for directories; see [IONFLSTDeleteOptions]
+     * @return success if file / directory was deleted, error otherwise
+     */
+    suspend fun delete(uri: IONFLSTUri, options: IONFLSTDeleteOptions): Result<Unit> =
+        uriHelper.useUriIfResolved(uri) { resolvedUri ->
+            when {
+                resolvedUri is IONFLSTUri.Resolved.Local && resolvedUri.type == LocalUriType.DIRECTORY ->
+                    directoriesHelper.deleteDirectory(resolvedUri.fullPath, options)
+
+                resolvedUri is IONFLSTUri.Resolved.Local ->
+                    localFilesHelper.deleteFile(resolvedUri.fullPath)
+
+                else -> contentResolverHelper.deleteFile(resolvedUri.uri)
+            }
+        }
 }

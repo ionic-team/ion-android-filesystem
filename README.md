@@ -1,6 +1,6 @@
-# OSFilesystemLib
+ion-android-filesystem
 
-The `OSFilesystemLib-Android` is a library built using `Kotlin` that allows management of files on Android applications
+The `ion-android-filesystem` is a library built using `Kotlin` that allows management of files on Android applications
 
 Documentation on how to use the library will be added below as the library gets developed.
 
@@ -21,11 +21,11 @@ This library is used by both Capacitor and Cordova plugins - Links to them will 
 
 ## Usage
 
-In your app-level gradle file, import the `OSFilesystemLib` library like so:
+In your app-level gradle file, import the `ion-android-filesystem` library like so:
 
 ```
 dependencies {
-    implementation("io.ionic.libs:osfilesystem-android:1.0.0")
+    implementation("io.ionic.libs:iongeolocation-android:1.0.0")
 }
 ```
 
@@ -49,8 +49,8 @@ Common issues with the plugin go here.
 
 ## License
 
-`OSFilesystemLib` is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
+`ion-android-filesystem` is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
 
 ## Support
 
-- Report issues on our [Issue Tracker](https://github.com/ionic-team/OSFilesystemLib-Android/issues)
+- Report issues on our [Issue Tracker](https://github.com/ionic-team/ion-android-filesystem/issues)

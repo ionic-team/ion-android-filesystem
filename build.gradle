@@ -25,7 +25,7 @@ plugins {
 sonarqube {
     // TODO update this information once ionic Sonarqube is available
     properties {
-        property "sonar.projectKey", "OutSystems_OSFilesystemLib-Android"
+        property "sonar.projectKey", "OutSystems_IONFilesystemLib-Android"
         property "sonar.organization", "outsystemsrd"
         property "sonar.host.url", "https://sonarcloud.io"
     }
@@ -41,7 +41,7 @@ apply plugin: "kotlin-android"
 apply plugin: "jacoco"
 
 android {
-    namespace "io.ionic.libs.osfilesystemlib"
+    namespace "io.ionic.libs.ionfilesystemlib"
     compileSdk 35
 
     defaultConfig {

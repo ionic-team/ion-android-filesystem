@@ -1,9 +1,9 @@
-package io.ionic.libs.osfilesystemlib.common
+package io.ionic.libs.ionfilesystemlib.common
 
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
-import io.ionic.libs.osfilesystemlib.controller.internal.OSFLSTBuildConfig
+import io.ionic.libs.ionfilesystemlib.controller.internal.IONFLSTBuildConfig
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -16,7 +16,7 @@ import org.junit.Before
 import java.io.File
 import java.util.Base64
 
-abstract class OSFLSTBaseTest {
+abstract class IONFLSTBaseTest {
     protected lateinit var testRootDirectory: File
     protected val fileInRootDir: File get() = File(testRootDirectory, FILE_NAME_TXT)
     protected val dirInRootDir: File get() = File(testRootDirectory, DIR_NAME)
@@ -62,8 +62,8 @@ abstract class OSFLSTBaseTest {
             Base64.getDecoder().decode(args.first() as ByteArray)
         }
 
-        mockkObject(OSFLSTBuildConfig)
-        every { OSFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.VANILLA_ICE_CREAM
+        mockkObject(IONFLSTBuildConfig)
+        every { IONFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.VANILLA_ICE_CREAM
         mockkStatic(MimeTypeMap::class)
         mockkMimeTypeMap(PDF_MIME_TYPE)
 
@@ -73,7 +73,7 @@ abstract class OSFLSTBaseTest {
     @After
     fun tearDown() {
         unmockkStatic(MimeTypeMap::class)
-        unmockkObject(OSFLSTBuildConfig)
+        unmockkObject(IONFLSTBuildConfig)
         unmockkStatic(android.util.Base64::class)
         testRootDirectory.deleteRecursively()
         additionalTearDowns()

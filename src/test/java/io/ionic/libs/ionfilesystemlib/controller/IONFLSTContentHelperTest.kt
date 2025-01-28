@@ -1,19 +1,19 @@
-package io.ionic.libs.osfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.controller
 
 import android.net.Uri
-import io.ionic.libs.osfilesystemlib.common.IMAGE_FILE_CONTENT
-import io.ionic.libs.osfilesystemlib.common.IMAGE_FILE_NAME
-import io.ionic.libs.osfilesystemlib.common.OSFLSTBaseTest
-import io.ionic.libs.osfilesystemlib.common.OSFLSTTestFileContentProvider
-import io.ionic.libs.osfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
-import io.ionic.libs.osfilesystemlib.common.TEST_TIMESTAMP
-import io.ionic.libs.osfilesystemlib.common.TEXT_FILE_CONTENT
-import io.ionic.libs.osfilesystemlib.common.TEXT_FILE_NAME
-import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
-import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTFileType
-import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
-import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
+import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_NAME
+import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseTest
+import io.ionic.libs.ionfilesystemlib.common.IONFLSTTestFileContentProvider
+import io.ionic.libs.ionfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
+import io.ionic.libs.ionfilesystemlib.common.TEST_TIMESTAMP
+import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_CONTENT
+import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_NAME
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -27,19 +27,19 @@ import org.robolectric.RuntimeEnvironment
 import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
-class OSFLSTContentHelperTest {
+class IONFLSTContentHelperTest {
 
-    private lateinit var contentProvider: OSFLSTTestFileContentProvider
-    private lateinit var sut: OSFLSTContentHelper
+    private lateinit var contentProvider: IONFLSTTestFileContentProvider
+    private lateinit var sut: IONFLSTContentHelper
 
     @Before
     fun setUp() {
         val contentResolver = RuntimeEnvironment.getApplication().contentResolver
         contentProvider = Robolectric.setupContentProvider(
-            OSFLSTTestFileContentProvider::class.java,
+            IONFLSTTestFileContentProvider::class.java,
             TEST_CONTENT_PROVIDER_NAME
         )
-        sut = OSFLSTContentHelper(contentResolver)
+        sut = IONFLSTContentHelper(contentResolver)
     }
 
     @After
@@ -51,9 +51,9 @@ class OSFLSTContentHelperTest {
     @Test
     fun `given text file, when reading from its content uri, success is returned`() = runTest {
         val uri =
-            OSFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+            IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
-        val result = sut.readFile(uri, OSFLSTReadOptions(OSFLSTEncoding.DefaultCharset))
+        val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.DefaultCharset))
 
         assertTrue(result.isSuccess)
         assertEquals(TEXT_FILE_CONTENT, result.getOrNull())
@@ -64,7 +64,7 @@ class OSFLSTContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
 
-            val result = sut.readFile(uri, OSFLSTReadOptions(OSFLSTEncoding.Base64))
+            val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.Base64))
 
             assertTrue(result.isSuccess)
             assertEquals(
@@ -78,10 +78,10 @@ class OSFLSTContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
 
-            val result = sut.readFile(uri, OSFLSTReadOptions(OSFLSTEncoding.DefaultCharset))
+            val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.DefaultCharset))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
         }
     // endregion readFile tests
 
@@ -89,17 +89,17 @@ class OSFLSTContentHelperTest {
     @Test
     fun `given text file, when getting metadata from content uri, success is returned`() = runTest {
         val uri =
-            OSFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+            IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
         val result = sut.getFileMetadata(uri)
 
         assertTrue(result.isSuccess)
         assertEquals(
-            OSFLSTMetadataResult(
+            IONFLSTMetadataResult(
                 fullPath = uri.path ?: "",
                 name = "$TEXT_FILE_NAME.txt",
                 size = TEXT_FILE_CONTENT.length.toLong(),
-                type = OSFLSTFileType.File("application/text"),
+                type = IONFLSTFileType.File("application/text"),
                 createdTimestamp = TEST_TIMESTAMP,
                 lastModifiedTimestamp = TEST_TIMESTAMP
             ),
@@ -116,11 +116,11 @@ class OSFLSTContentHelperTest {
 
             assertTrue(result.isSuccess)
             assertEquals(
-                OSFLSTMetadataResult(
+                IONFLSTMetadataResult(
                     fullPath = uri.path ?: "",
                     name = "$IMAGE_FILE_NAME.jpeg",
                     size = IMAGE_FILE_CONTENT.length.toLong(),
-                    type = OSFLSTFileType.File("image/jpeg"),
+                    type = IONFLSTFileType.File("image/jpeg"),
                     createdTimestamp = TEST_TIMESTAMP,
                     lastModifiedTimestamp = TEST_TIMESTAMP
                 ),
@@ -136,7 +136,7 @@ class OSFLSTContentHelperTest {
             val result = sut.getFileMetadata(uri)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
         }
     // endregion getFileMetadata tests
 
@@ -145,7 +145,7 @@ class OSFLSTContentHelperTest {
     fun `given file exists and allows for deletion, when deleting it via content uri, success is returned`() =
         runTest {
             val uri =
-                OSFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+                IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
             val result = sut.deleteFile(uri)
 
@@ -160,7 +160,7 @@ class OSFLSTContentHelperTest {
             val result = sut.deleteFile(uri)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is OSFLSTExceptions.DeleteFailed.Unknown)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DeleteFailed.Unknown)
         }
     // endregion deleteFile tests
 }

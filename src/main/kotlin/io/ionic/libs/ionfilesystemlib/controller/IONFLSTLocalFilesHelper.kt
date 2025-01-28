@@ -1,17 +1,17 @@
-package io.ionic.libs.osfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.controller
 
 import android.util.Base64
-import io.ionic.libs.osfilesystemlib.controller.internal.createDirOrFile
-import io.ionic.libs.osfilesystemlib.controller.internal.deleteDirOrFile
-import io.ionic.libs.osfilesystemlib.controller.internal.getMetadata
-import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
-import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
-import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveMode
-import io.ionic.libs.osfilesystemlib.model.OSFLSTSaveOptions
+import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
+import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
+import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveMode
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
@@ -22,7 +22,7 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
-class OSFLSTLocalFilesHelper {
+class IONFLSTLocalFilesHelper {
 
     /**
      * Reads contents of a file
@@ -33,15 +33,15 @@ class OSFLSTLocalFilesHelper {
      */
     suspend fun readFile(
         fullPath: String,
-        options: OSFLSTReadOptions
+        options: IONFLSTReadOptions
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             val file = File(fullPath)
             if (!file.exists()) {
-                throw OSFLSTExceptions.DoesNotExist()
+                throw IONFLSTExceptions.DoesNotExist()
             }
             val inputStream = FileInputStream(file)
-            val fileContents: String = if (options.encoding is OSFLSTEncoding.WithCharset) {
+            val fileContents: String = if (options.encoding is IONFLSTEncoding.WithCharset) {
                 val reader =
                     InputStreamReader(inputStream, options.encoding.charset)
                 reader.use { reader.readText() }
@@ -59,12 +59,12 @@ class OSFLSTLocalFilesHelper {
      * @param fullPath the full path to the file or directory
      * @return success with result containing relevant file information, error otherwise
      */
-    suspend fun getFileMetadata(fullPath: String): Result<OSFLSTMetadataResult> =
+    suspend fun getFileMetadata(fullPath: String): Result<IONFLSTMetadataResult> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val file = File(fullPath)
                 if (!file.exists()) {
-                    throw OSFLSTExceptions.DoesNotExist()
+                    throw IONFLSTExceptions.DoesNotExist()
                 }
                 getMetadata(fileObject = file)
             }
@@ -77,7 +77,7 @@ class OSFLSTLocalFilesHelper {
      * @param options options to create the file
      * @return success if the file was created successfully, error otherwise
      */
-    suspend fun createFile(fullPath: String, options: OSFLSTCreateOptions): Result<Unit> =
+    suspend fun createFile(fullPath: String, options: IONFLSTCreateOptions): Result<Unit> =
         withContext(Dispatchers.IO) { createDirOrFile(fullPath, options, isDirectory = false) }
 
     /**
@@ -89,17 +89,17 @@ class OSFLSTLocalFilesHelper {
      */
     suspend fun saveFile(
         fullPath: String,
-        options: OSFLSTSaveOptions
+        options: IONFLSTSaveOptions
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val file = File(fullPath)
             if (!file.exists()) {
                 if (options.createFileRecursive == null) {
-                    throw OSFLSTExceptions.DoesNotExist()
+                    throw IONFLSTExceptions.DoesNotExist()
                 } else {
                     val createFileResult = createFile(
                         fullPath,
-                        OSFLSTCreateOptions(
+                        IONFLSTCreateOptions(
                             recursive = options.createFileRecursive,
                             exclusive = false
                         )
@@ -107,8 +107,8 @@ class OSFLSTLocalFilesHelper {
                     createFileResult.exceptionOrNull()?.let { throw it }
                 }
             }
-            val fileStream = FileOutputStream(file, options.mode == OSFLSTSaveMode.APPEND)
-            if (options.encoding is OSFLSTEncoding.WithCharset) {
+            val fileStream = FileOutputStream(file, options.mode == IONFLSTSaveMode.APPEND)
+            if (options.encoding is IONFLSTEncoding.WithCharset) {
                 val writer =
                     BufferedWriter(OutputStreamWriter(fileStream, options.encoding.charset))
                 writer.use { writer.write(options.data) }
@@ -134,6 +134,6 @@ class OSFLSTLocalFilesHelper {
      */
     suspend fun deleteFile(fullPath: String): Result<Unit> =
         withContext(Dispatchers.IO) {
-            deleteDirOrFile(fullPath, OSFLSTDeleteOptions(recursive = false))
+            deleteDirOrFile(fullPath, IONFLSTDeleteOptions(recursive = false))
         }
 }

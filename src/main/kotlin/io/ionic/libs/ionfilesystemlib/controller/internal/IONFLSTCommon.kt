@@ -1,19 +1,19 @@
-package io.ionic.libs.osfilesystemlib.controller.internal
+package io.ionic.libs.ionfilesystemlib.controller.internal
 
 import android.annotation.SuppressLint
 import android.os.Build
 import android.webkit.MimeTypeMap
-import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTFileType
-import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.math.min
 
-// common methods and variables to different OSFLST helpers
+// common methods and variables to different IONFLST helpers
 
 internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
 
@@ -29,21 +29,21 @@ internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
  */
 internal fun createDirOrFile(
     fullPath: String,
-    options: OSFLSTCreateOptions,
+    options: IONFLSTCreateOptions,
     isDirectory: Boolean
 ): Result<Unit> =
     runCatching {
         val file = File(fullPath)
         if (file.exists()) {
             if (options.exclusive) {
-                throw OSFLSTExceptions.CreateFailed.AlreadyExists()
+                throw IONFLSTExceptions.CreateFailed.AlreadyExists()
             } else {
                 // file/directory creation is not going to do anything if file/directory already exists
                 return@runCatching
             }
         }
         if (!checkParentDirectory(file, create = options.recursive)) {
-            throw OSFLSTExceptions.CreateFailed.NoParentDirectory()
+            throw IONFLSTExceptions.CreateFailed.NoParentDirectory()
         }
         val createSucceeded = if (isDirectory) {
             file.mkdir()
@@ -51,7 +51,7 @@ internal fun createDirOrFile(
             file.createNewFile()
         }
         if (!createSucceeded) {
-            throw OSFLSTExceptions.CreateFailed.Unknown()
+            throw IONFLSTExceptions.CreateFailed.Unknown()
         }
     }
 
@@ -64,22 +64,22 @@ internal fun createDirOrFile(
  */
 internal fun deleteDirOrFile(
     fullPath: String,
-    options: OSFLSTDeleteOptions
+    options: IONFLSTDeleteOptions
 ): Result<Unit> = runCatching {
     val file = File(fullPath)
     if (!file.exists()) {
-        throw OSFLSTExceptions.DoesNotExist()
+        throw IONFLSTExceptions.DoesNotExist()
     }
     val deleteSucceeded = if (file.isDirectory) {
         if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
-            throw OSFLSTExceptions.DeleteFailed.CannotDeleteChildren()
+            throw IONFLSTExceptions.DeleteFailed.CannotDeleteChildren()
         }
         file.deleteRecursively()
     } else {
         file.delete()
     }
     if (!deleteSucceeded) {
-        throw OSFLSTExceptions.DeleteFailed.Unknown()
+        throw IONFLSTExceptions.DeleteFailed.Unknown()
     }
 }
 
@@ -89,17 +89,17 @@ internal fun deleteDirOrFile(
  * @param fileObject the [File] representing a file or directory
  * @return metadata information on the file or directory
  */
-@SuppressLint("NewApi") // lint not detecting version check in OSFLSTBuildConfig
-internal fun getMetadata(fileObject: File): OSFLSTMetadataResult = OSFLSTMetadataResult(
+@SuppressLint("NewApi") // lint not detecting version check in IONFLSTBuildConfig
+internal fun getMetadata(fileObject: File): IONFLSTMetadataResult = IONFLSTMetadataResult(
     fullPath = fileObject.absolutePath,
     name = fileObject.name,
     size = fileObject.length(),
     type = if (fileObject.isDirectory) {
-        OSFLSTFileType.Directory
+        IONFLSTFileType.Directory
     } else {
-        OSFLSTFileType.File(mimeType = getMimeType(fileObject))
+        IONFLSTFileType.File(mimeType = getMimeType(fileObject))
     },
-    createdTimestamp = if (OSFLSTBuildConfig.getAndroidSdkVersionCode() > Build.VERSION_CODES.O) {
+    createdTimestamp = if (IONFLSTBuildConfig.getAndroidSdkVersionCode() > Build.VERSION_CODES.O) {
         Files.readAttributes(fileObject.toPath(), BasicFileAttributes::class.java).let { attr ->
             // use the oldest of the two attributes
             min(attr.creationTime().toMillis(), attr.lastAccessTime().toMillis())

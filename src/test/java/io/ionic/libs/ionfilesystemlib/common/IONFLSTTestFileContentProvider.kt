@@ -1,4 +1,4 @@
-package io.ionic.libs.osfilesystemlib.common
+package io.ionic.libs.ionfilesystemlib.common
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -20,10 +20,10 @@ internal const val TEXT_FILE_CONTENT = "This is a\nmultiline\ntext"
 internal const val IMAGE_FILE_CONTENT =
     "\u0005\u0004Hljı{#«ë5{»Ü\u000FY\u000B:‹‡'\u000EBÿN\u0005Ãz…Ÿ÷£WøΩıòljı{>ﬁ'–ı{>‡<V+\u0015ÏÒ\uF8FFÒ‰IS‰‡ú\u001A\u0007BÅí%?˜ΩÔxjÙ1"
 
-internal class OSFLSTTestFileContentProvider : ContentProvider() {
+internal class IONFLSTTestFileContentProvider : ContentProvider() {
 
     private val rootDir
-        get() = File(System.getProperty("java.io.tmpdir"), OSFLSTBaseTest.ROOT_DIR_NAME)
+        get() = File(System.getProperty("java.io.tmpdir"), IONFLSTBaseTest.ROOT_DIR_NAME)
 
     private val fileList: List<TestFileContent> = listOf(
         TestFileContent(

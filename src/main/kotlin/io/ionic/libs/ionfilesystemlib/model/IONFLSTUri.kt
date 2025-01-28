@@ -1,27 +1,27 @@
-package io.ionic.libs.osfilesystemlib.model
+package io.ionic.libs.ionfilesystemlib.model
 
 import android.net.Uri
 
-sealed class OSFLSTUri {
+sealed class IONFLSTUri {
     /**
      * Uri that is unresolved, and it is unknown what kind of uri it can be.
      *
      * @param parentFolder type of parent folder; indicates that the uri is for a  local file inside that folde.
-     *  For folder types refer to [OSFLSTFolderType].
+     *  For folder types refer to [IONFLSTFolderType].
      *  If null, will assume that the entire uri to resolve appears inside uriPath
      * @param uriPath the actual full uri path (or partial, to be combined with parentFolder if not null)
      */
     data class Unresolved(
-        val parentFolder: OSFLSTFolderType?,
+        val parentFolder: IONFLSTFolderType?,
         val uriPath: String
-    ) : OSFLSTUri()
+    ) : IONFLSTUri()
 
     /**
      * Uri that was resolved and is now of a known type.
      *
      * Note that just because it is resolved, does not mean that the underlying file exists.
      */
-    sealed class Resolved(open val uri: Uri) : OSFLSTUri() {
+    sealed class Resolved(open val uri: Uri) : IONFLSTUri() {
         /**
          * Uri of content scheme (e.g. content://media...)
          */

@@ -1,4 +1,4 @@
-package io.ionic.libs.osfilesystemlib.model
+package io.ionic.libs.ionfilesystemlib.model
 
 import androidx.annotation.VisibleForTesting
 
@@ -7,7 +7,7 @@ import androidx.annotation.VisibleForTesting
  *
  * These folders are specific to local files, cannot be used with content:// scheme
  */
-enum class OSFLSTFolderType(
+enum class IONFLSTFolderType(
     val requiresPermission: Boolean = false,
     internal val alternateNames: List<String> = emptyList()
 ) {
@@ -19,10 +19,10 @@ enum class OSFLSTFolderType(
     DOCUMENTS(requiresPermission = true);
 
     companion object {
-        fun fromStringAlias(alias: String?): OSFLSTFolderType? = if (alias.isNullOrBlank()) {
+        fun fromStringAlias(alias: String?): IONFLSTFolderType? = if (alias.isNullOrBlank()) {
             null
         } else {
-            OSFLSTFolderType.entries.firstOrNull {
+            IONFLSTFolderType.entries.firstOrNull {
                 aliasMatches(alias, it.name) || it.alternateNames.any { alternateName ->
                     aliasMatches(alias, alternateName)
                 }

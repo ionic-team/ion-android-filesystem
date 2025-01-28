@@ -1,4 +1,4 @@
-package io.ionic.libs.osfilesystemlib.model
+package io.ionic.libs.ionfilesystemlib.model
 
 /**
  * Parameters for creating a file or directory
@@ -6,6 +6,6 @@ package io.ionic.libs.osfilesystemlib.model
  * @param recursive true if meant to remove any sub-directories or files, false otherwise.
  *  This only applies to directories; will fail if recursive=false and directory is not empty
  */
-data class OSFLSTDeleteOptions(
+data class IONFLSTDeleteOptions(
     val recursive: Boolean
 )

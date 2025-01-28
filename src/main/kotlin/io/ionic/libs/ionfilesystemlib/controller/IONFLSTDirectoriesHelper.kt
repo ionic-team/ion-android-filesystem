@@ -1,17 +1,17 @@
-package io.ionic.libs.osfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.controller
 
-import io.ionic.libs.osfilesystemlib.controller.internal.createDirOrFile
-import io.ionic.libs.osfilesystemlib.controller.internal.deleteDirOrFile
-import io.ionic.libs.osfilesystemlib.controller.internal.getMetadata
-import io.ionic.libs.osfilesystemlib.model.OSFLSTCreateOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTDeleteOptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
+import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
+import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class OSFLSTDirectoriesHelper {
+class IONFLSTDirectoriesHelper {
 
     /**
      * List the contents of a directory
@@ -19,12 +19,12 @@ class OSFLSTDirectoriesHelper {
      * @param fullPath full path to the directory
      * @return success with list of metadata information for each file / sub-directory, error otherwise
      */
-    suspend fun listDirectory(fullPath: String): Result<List<OSFLSTMetadataResult>> =
+    suspend fun listDirectory(fullPath: String): Result<List<IONFLSTMetadataResult>> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val file = File(fullPath)
                 if (!file.exists()) {
-                    throw OSFLSTExceptions.DoesNotExist()
+                    throw IONFLSTExceptions.DoesNotExist()
                 }
                 val directoryEntries = file.listFiles()?.toList() ?: emptyList()
                 directoryEntries.filterNotNull().map { getMetadata(it) }
@@ -40,7 +40,7 @@ class OSFLSTDirectoriesHelper {
      */
     suspend fun createDirectory(
         fullPath: String,
-        options: OSFLSTCreateOptions
+        options: IONFLSTCreateOptions
     ): Result<Unit> = withContext(Dispatchers.IO) {
         createDirOrFile(fullPath, options, isDirectory = true)
     }
@@ -52,6 +52,6 @@ class OSFLSTDirectoriesHelper {
      * @param options options to delete the directory
      * @return success if the directory was deleted successfully, error otherwise
      */
-    suspend fun deleteDirectory(fullPath: String, options: OSFLSTDeleteOptions): Result<Unit> =
+    suspend fun deleteDirectory(fullPath: String, options: IONFLSTDeleteOptions): Result<Unit> =
         withContext(Dispatchers.IO) { deleteDirOrFile(fullPath, options) }
 }

@@ -1,4 +1,4 @@
-package io.ionic.libs.osfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.controller
 
 import android.content.ContentResolver
 import android.database.Cursor
@@ -7,18 +7,18 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Base64
-import io.ionic.libs.osfilesystemlib.controller.internal.FILE_MIME_TYPE_FALLBACK
-import io.ionic.libs.osfilesystemlib.model.OSFLSTEncoding
-import io.ionic.libs.osfilesystemlib.model.OSFLSTExceptions
-import io.ionic.libs.osfilesystemlib.model.OSFLSTFileType
-import io.ionic.libs.osfilesystemlib.model.OSFLSTMetadataResult
-import io.ionic.libs.osfilesystemlib.model.OSFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.controller.internal.FILE_MIME_TYPE_FALLBACK
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.io.InputStreamReader
 
-class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
+class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
 
     /**
      * Reads contents of a file using content resolver
@@ -29,12 +29,12 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
      */
     suspend fun readFile(
         uri: Uri,
-        options: OSFLSTReadOptions
+        options: IONFLSTReadOptions
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             val inputStream =
-                contentResolver.openInputStream(uri) ?: throw OSFLSTExceptions.UnknownError()
-            val fileContents: String = if (options.encoding is OSFLSTEncoding.WithCharset) {
+                contentResolver.openInputStream(uri) ?: throw IONFLSTExceptions.UnknownError()
+            val fileContents: String = if (options.encoding is IONFLSTEncoding.WithCharset) {
                 val reader =
                     InputStreamReader(inputStream, options.encoding.charset)
                 reader.use { reader.readText() }
@@ -52,14 +52,14 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
      * @param uri the content uri to get the metadata from
      * @return success with result containing relevant file information, error otherwise
      */
-    suspend fun getFileMetadata(uri: Uri): Result<OSFLSTMetadataResult> =
+    suspend fun getFileMetadata(uri: Uri): Result<IONFLSTMetadataResult> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val cursor = contentResolver.query(uri, null, null, null, null)
-                    ?: throw OSFLSTExceptions.UnknownError()
+                    ?: throw IONFLSTExceptions.UnknownError()
                 cursor.use {
                     if (!cursor.moveToFirst()) {
-                        throw OSFLSTExceptions.DoesNotExist()
+                        throw IONFLSTExceptions.DoesNotExist()
                     }
                     contentResolver.persistedUriPermissions
                     val name = getNameForContentUri(cursor)
@@ -67,11 +67,11 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
                     val lastModified: Long = getLastModifiedTimestampForContentUri(cursor)
                     val created: Long = getCreatedTimestampForContentUri(cursor)
                     val mimeType = contentResolver.getType(uri) ?: FILE_MIME_TYPE_FALLBACK
-                    OSFLSTMetadataResult(
+                    IONFLSTMetadataResult(
                         fullPath = uri.path ?: "",
                         name = name,
                         size = size,
-                        type = OSFLSTFileType.File(mimeType),
+                        type = IONFLSTFileType.File(mimeType),
                         createdTimestamp = created,
                         lastModifiedTimestamp = lastModified
                     )
@@ -91,7 +91,7 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
             if (rowsDeleted > 0) {
                 Unit
             } else {
-                throw OSFLSTExceptions.DeleteFailed.Unknown()
+                throw IONFLSTExceptions.DeleteFailed.Unknown()
             }
         }.mapError()
     }
@@ -110,7 +110,7 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
             ?: cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                 .takeIf { it >= 0 }
         return columnIndex?.let { cursor.getString(columnIndex) }
-            ?: throw OSFLSTExceptions.UnknownError()
+            ?: throw IONFLSTExceptions.UnknownError()
     }
 
     /**
@@ -163,8 +163,8 @@ class OSFLSTContentHelper(private val contentResolver: ContentResolver) {
 
     private fun <T> Result<T>.mapError(): Result<T> =
         when (val ex = exceptionOrNull()) {
-            is FileNotFoundException -> Result.failure(OSFLSTExceptions.DoesNotExist())
-            is UnsupportedOperationException -> Result.failure(OSFLSTExceptions.NotAllowed())
+            is FileNotFoundException -> Result.failure(IONFLSTExceptions.DoesNotExist())
+            is UnsupportedOperationException -> Result.failure(IONFLSTExceptions.NotAllowed())
             null -> this
             else -> Result.failure(ex)
         }

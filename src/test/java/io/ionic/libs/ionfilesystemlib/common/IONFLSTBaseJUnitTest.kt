@@ -16,7 +16,7 @@ import org.junit.Before
 import java.io.File
 import java.util.Base64
 
-abstract class IONFLSTBaseTest {
+abstract class IONFLSTBaseJUnitTest {
     protected lateinit var testRootDirectory: File
     protected val fileInRootDir: File get() = File(testRootDirectory, FILE_NAME_TXT)
     protected val dirInRootDir: File get() = File(testRootDirectory, DIR_NAME)
@@ -87,12 +87,5 @@ abstract class IONFLSTBaseTest {
         const val SUBDIR_NAME = "directory"
         const val TEXT_MIME_TYPE = "text/plain"
         const val PDF_MIME_TYPE = "application/pdf"
-
-        /**
-         * Uri.parse expects a the uri string to already be encoded, so this is a small helper method
-         *  to make sure that spaces and other characters get encoded
-         */
-        fun fileUriWithEncodings(uriString: String): Uri =
-            Uri.parse(Uri.encode(uriString, "/:"))
     }
 }

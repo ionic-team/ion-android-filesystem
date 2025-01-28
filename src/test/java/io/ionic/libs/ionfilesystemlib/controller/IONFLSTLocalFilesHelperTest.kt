@@ -1,7 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
 import android.os.Build
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseTest
+import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
 import io.ionic.libs.ionfilesystemlib.controller.internal.IONFLSTBuildConfig
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
@@ -21,7 +21,7 @@ import java.io.File
 import java.util.Base64
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class IONFLSTLocalFilesHelperTest : IONFLSTBaseTest() {
+class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
 
     private lateinit var sut: IONFLSTLocalFilesHelper
 

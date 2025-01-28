@@ -1,6 +1,6 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseTest
+import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
@@ -15,7 +15,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class IONFLSTDirectoriesHelperTest : IONFLSTBaseTest() {
+class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     private lateinit var sut: IONFLSTDirectoriesHelper
 
     override fun additionalSetups() {

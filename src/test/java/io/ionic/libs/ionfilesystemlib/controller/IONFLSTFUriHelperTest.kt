@@ -3,7 +3,7 @@ package io.ionic.libs.ionfilesystemlib.controller
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseTest.Companion.fileUriWithEncodings
+import io.ionic.libs.ionfilesystemlib.common.fileUriWithEncodings
 import io.ionic.libs.ionfilesystemlib.model.LocalUriType
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFolderType

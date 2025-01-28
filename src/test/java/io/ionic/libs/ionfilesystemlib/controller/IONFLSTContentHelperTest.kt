@@ -3,12 +3,12 @@ package io.ionic.libs.ionfilesystemlib.controller
 import android.net.Uri
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_NAME
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseTest
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTTestFileContentProvider
 import io.ionic.libs.ionfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
 import io.ionic.libs.ionfilesystemlib.common.TEST_TIMESTAMP
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_NAME
+import io.ionic.libs.ionfilesystemlib.common.fileUriWithEncodings
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
@@ -50,8 +50,7 @@ class IONFLSTContentHelperTest {
     // region readFile tests
     @Test
     fun `given text file, when reading from its content uri, success is returned`() = runTest {
-        val uri =
-            IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+        val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
         val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.DefaultCharset))
 
@@ -88,8 +87,7 @@ class IONFLSTContentHelperTest {
     // region getFileMetadata tests
     @Test
     fun `given text file, when getting metadata from content uri, success is returned`() = runTest {
-        val uri =
-            IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+        val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
         val result = sut.getFileMetadata(uri)
 
@@ -144,8 +142,7 @@ class IONFLSTContentHelperTest {
     @Test
     fun `given file exists and allows for deletion, when deleting it via content uri, success is returned`() =
         runTest {
-            val uri =
-                IONFLSTBaseTest.fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+            val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
             val result = sut.deleteFile(uri)
 

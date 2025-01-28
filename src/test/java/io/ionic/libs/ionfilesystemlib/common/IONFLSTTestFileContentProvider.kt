@@ -23,7 +23,7 @@ internal const val IMAGE_FILE_CONTENT =
 internal class IONFLSTTestFileContentProvider : ContentProvider() {
 
     private val rootDir
-        get() = File(System.getProperty("java.io.tmpdir"), IONFLSTBaseTest.ROOT_DIR_NAME)
+        get() = File(System.getProperty("java.io.tmpdir"), IONFLSTBaseJUnitTest.ROOT_DIR_NAME)
 
     private val fileList: List<TestFileContent> = listOf(
         TestFileContent(

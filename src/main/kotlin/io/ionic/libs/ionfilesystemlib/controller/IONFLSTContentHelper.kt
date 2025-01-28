@@ -32,16 +32,16 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
         options: IONFLSTReadOptions
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            val inputStream =
-                contentResolver.openInputStream(uri) ?: throw IONFLSTExceptions.UnknownError()
-            val fileContents: String = if (options.encoding is IONFLSTEncoding.WithCharset) {
-                val reader =
-                    InputStreamReader(inputStream, options.encoding.charset)
-                reader.use { reader.readText() }
-            } else {
-                val byteArray = inputStream.readBytes()
-                Base64.encodeToString(byteArray, Base64.NO_WRAP)
-            }
+            val fileContents: String = contentResolver.openInputStream(uri)?.use { inputStream ->
+                if (options.encoding is IONFLSTEncoding.WithCharset) {
+                    val reader =
+                        InputStreamReader(inputStream, options.encoding.charset)
+                    reader.use { reader.readText() }
+                } else {
+                    val byteArray = inputStream.readBytes()
+                    Base64.encodeToString(byteArray, Base64.NO_WRAP)
+                }
+            } ?: throw IONFLSTExceptions.UnknownError()
             return@runCatching fileContents
         }.mapError()
     }

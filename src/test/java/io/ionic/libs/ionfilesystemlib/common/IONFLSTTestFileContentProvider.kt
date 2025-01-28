@@ -23,7 +23,7 @@ internal const val IMAGE_FILE_CONTENT =
 internal class IONFLSTTestFileContentProvider : ContentProvider() {
 
     private val rootDir
-        get() = File(System.getProperty("java.io.tmpdir"), IONFLSTBaseJUnitTest.ROOT_DIR_NAME)
+        get() = File(System.getProperty("java.io.tmpdir"), "testCP")
 
     private val fileList: List<TestFileContent> = listOf(
         TestFileContent(
@@ -40,6 +40,7 @@ internal class IONFLSTTestFileContentProvider : ContentProvider() {
 
     override fun onCreate(): Boolean {
         rootDir.mkdirs()
+        rootDir.mkdir()
         fileList.forEach { file ->
             File(rootDir, file.name).apply {
                 createNewFile()

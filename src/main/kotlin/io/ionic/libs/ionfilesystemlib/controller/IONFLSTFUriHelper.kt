@@ -16,13 +16,25 @@ private const val CONTENT_SCHEME = "$CONTENT_SCHEME_NAME://"
 private const val SYNTHETIC_URI_PREFIX = "/synthetic/"
 private const val FILE_SCHEME_NAME = "file"
 
-class IONFLSTFUriHelper {
+class IONFLSTFUriHelper(context: Context) {
 
+    private val internalCacheDir = context.cacheDir
+    private val internalFilesDir = context.filesDir
+    private val externalCacheDir = context.externalCacheDir
+    private val externalFilesDir = context.getExternalFilesDir(null)
+
+    /**
+     * Resolves a URI for a file.
+     *
+     * Identifies the URI as belonging to a local file, or a file with content:// scheme
+     *
+     * @param unresolvedUri the URI to resolve; see [IONFLSTUri.Unresolved]
+     * @return success with the resolved URI [IONFLSTUri.Resolved], or error otherwise
+     */
     suspend fun resolveUri(
-        context: Context,
         unresolvedUri: IONFLSTUri.Unresolved
     ): Result<IONFLSTUri.Resolved> = runCatching {
-        val parentFolderObject = unresolvedUri.parentFolder.getFolderFileObject(context)
+        val parentFolderObject = unresolvedUri.parentFolder.getFolderFileObject()
         val resolvedUri = if (parentFolderObject == null) {
             val parsedUri = Uri.parse(unresolvedUri.uriPath)
             when {
@@ -49,10 +61,23 @@ class IONFLSTFUriHelper {
         resolvedUri
     }
 
+    /**
+     * Resolves as a content:// URI
+     *
+     * @param uri the content:// URI
+     * @return a [IONFLSTUri.Resolved.Content] object
+     */
     private fun resolveAsContentUri(uri: Uri): IONFLSTUri.Resolved.Content {
         return IONFLSTUri.Resolved.Content(uri)
     }
 
+    /**
+     * Resolves to a local file URI
+     *
+     * @param parentFolderFileObject the parent folder of the file, or null if there is none
+     * @param localPath the local path to the file (minus the parent folder path)
+     * @return a [IONFLSTUri.Resolved.Local] object
+     */
     private suspend fun resolveAsLocalFile(
         parentFolderFileObject: File?,
         localPath: String
@@ -80,6 +105,15 @@ class IONFLSTFUriHelper {
         )
     }
 
+    /**
+     * Converts file path of type /synthetic/ to a content:// URI
+     *
+     * A local file path with /synthetic/ can be returned by Android's Photo Picker, for example.
+     * But this file will be readable via the content resolver, hence the change to content:// URI.
+     *
+     * @param path the path to the file containing /synthetic/ in it
+     * @return a content:// URI
+     */
     private fun convertSyntheticToContentUri(path: String): Uri {
         val syntheticPathEndIndex =
             path.lastIndexOf(SYNTHETIC_URI_PREFIX) + SYNTHETIC_URI_PREFIX.length
@@ -93,12 +127,17 @@ class IONFLSTFUriHelper {
         return Uri.parse(contentUriPrefix + location)
     }
 
-    private fun IONFLSTFolderType?.getFolderFileObject(context: Context): File? =
+    /**
+     * Get the full folder object from [IONFLSTFolderType] enum
+     *
+     * @return file object for a folder, or null if none was provided.
+     */
+    private fun IONFLSTFolderType?.getFolderFileObject(): File? =
         when (this) {
-            IONFLSTFolderType.INTERNAL_CACHE -> context.cacheDir
-            IONFLSTFolderType.INTERNAL_FILES -> context.filesDir
-            IONFLSTFolderType.EXTERNAL_CACHE -> context.externalCacheDir
-            IONFLSTFolderType.EXTERNAL_FILES -> context.getExternalFilesDir(null)
+            IONFLSTFolderType.INTERNAL_CACHE -> internalCacheDir
+            IONFLSTFolderType.INTERNAL_FILES -> internalFilesDir
+            IONFLSTFolderType.EXTERNAL_CACHE -> externalCacheDir
+            IONFLSTFolderType.EXTERNAL_FILES -> externalFilesDir
             IONFLSTFolderType.EXTERNAL_STORAGE -> Environment.getExternalStorageDirectory()
             IONFLSTFolderType.DOCUMENTS -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             null -> null

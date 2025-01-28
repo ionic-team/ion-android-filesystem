@@ -31,7 +31,7 @@ class IONFLSTFUriHelperTest {
         // To allow external storage
         ShadowEnvironment.setExternalStorageState(Environment.MEDIA_MOUNTED)
 
-        sut = IONFLSTFUriHelper()
+        sut = IONFLSTFUriHelper(context)
     }
 
     @Test
@@ -42,7 +42,7 @@ class IONFLSTFUriHelperTest {
                 uriPath = "content://media/external/audio/1"
             )
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Content(Uri.parse("content://media/external/audio/1")),
@@ -58,7 +58,7 @@ class IONFLSTFUriHelperTest {
                 uriPath = "/synthetic/photo_picker_content/12345.mp4"
             )
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Content(Uri.parse("content://media/photo_picker_content/12345")),
@@ -74,7 +74,7 @@ class IONFLSTFUriHelperTest {
                 uriPath = "/synthetic/photo_picker_content/noExtension"
             )
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.UnresolvableUri)
@@ -87,7 +87,7 @@ class IONFLSTFUriHelperTest {
             File(context.cacheDir, path).createNewFile()
             val unresolvedUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, path)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -106,7 +106,7 @@ class IONFLSTFUriHelperTest {
             File(context.filesDir, path).mkdirs()
             val unresolvedUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, path)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -125,7 +125,7 @@ class IONFLSTFUriHelperTest {
             // adding extra "/" just to make sure that the result does not go with the extra "/"
             val unresolvedUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_CACHE, "/$path")
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -143,7 +143,7 @@ class IONFLSTFUriHelperTest {
             val path = "some file that does not exist"
             val unresolvedUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_FILES, path)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -161,7 +161,7 @@ class IONFLSTFUriHelperTest {
             val path = "this is a directory/with multiple/parent/folders"
             val unresolvedUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_STORAGE, path)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -181,7 +181,7 @@ class IONFLSTFUriHelperTest {
             val documentsDir =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -199,7 +199,7 @@ class IONFLSTFUriHelperTest {
             val path = "/data/files/file with spaces.txt"
             val unresolvedUri = IONFLSTUri.Unresolved(parentFolder = null, uriPath = path)
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(
@@ -217,7 +217,7 @@ class IONFLSTFUriHelperTest {
             val path = "/data/files/test.txt"
             val unresolvedUri = IONFLSTUri.Unresolved(parentFolder = null, uriPath = "file://$path")
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFLSTUri.Resolved.Local(path, Uri.parse("file://$path"), LocalUriType.UNKNOWN),
@@ -231,7 +231,7 @@ class IONFLSTFUriHelperTest {
             val unresolvedUri =
                 IONFLSTUri.Unresolved(parentFolder = null, uriPath = "invalidUriScheme://some/path")
 
-            val result = sut.resolveUri(context, unresolvedUri)
+            val result = sut.resolveUri(unresolvedUri)
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.UnresolvableUri)

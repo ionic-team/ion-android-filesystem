@@ -1,4 +1,4 @@
-package io.ionic.libs.osfilesystemlib
+package io.ionic.libs.ionfilesystemlib
 
 import org.junit.Test
 

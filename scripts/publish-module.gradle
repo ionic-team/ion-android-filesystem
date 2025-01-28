@@ -22,7 +22,7 @@ afterEvaluate {
             release(MavenPublication) {
                 // Coordinates
                 groupId 'io.ionic.libs'
-                artifactId 'osfilesystem-android'
+                artifactId 'ionfilesystem-android'
                 version LIB_VERSION
 
                 // Two artifacts, the `aar` (or `jar`) and the sources
@@ -36,13 +36,13 @@ afterEvaluate {
 
                 // POM Data
                 pom {
-                    name = 'osfilesystem-android'
+                    name = 'ionfilesystem-android'
                     description = 'File system Android Lib'
-                    url = 'https://github.com/ionic-team/OSFilesystemLib-Android'
+                    url = 'https://github.com/ionic-team/ion-android-filesystem'
                     licenses {
                         license {
                             name = 'License'
-                            url = 'https://github.com/ionic-team/OSFilesystemLib-Android/blob/main/LICENSE'
+                            url = 'https://github.com/ionic-team/ion-android-filesystem/blob/main/LICENSE'
                         }
                     }
                     developers {
@@ -54,9 +54,9 @@ afterEvaluate {
 
                     // Version Control Info
                     scm {
-                        connection = 'scm:git:github.com:ionic-team/OSFilesystemLib-Android.git'
-                        developerConnection = 'scm:git:ssh://github.com:ionic-team/OSFilesystemLib-Android.git'
-                        url = 'https://github.com/ionic-team/OSFilesystemLib-Android/tree/main'
+                        connection = 'scm:git:github.com:ionic-team/ion-android-filesystem.git'
+                        developerConnection = 'scm:git:ssh://github.com:ionic-team/ion-android-filesystem.git'
+                        url = 'https://github.com/ionic-team/ion-android-filesystem/tree/main'
                     }
                 }
             }

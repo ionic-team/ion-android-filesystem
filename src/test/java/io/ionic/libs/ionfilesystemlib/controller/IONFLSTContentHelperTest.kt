@@ -24,17 +24,19 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import java.io.File
 import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
 class IONFLSTContentHelperTest {
 
+    private val context get() = RuntimeEnvironment.getApplication().applicationContext
     private lateinit var contentProvider: IONFLSTTestFileContentProvider
     private lateinit var sut: IONFLSTContentHelper
 
     @Before
     fun setUp() {
-        val contentResolver = RuntimeEnvironment.getApplication().contentResolver
+        val contentResolver = context.contentResolver
         contentProvider = Robolectric.setupContentProvider(
             IONFLSTTestFileContentProvider::class.java,
             TEST_CONTENT_PROVIDER_NAME
@@ -160,4 +162,54 @@ class IONFLSTContentHelperTest {
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DeleteFailed.Unknown)
         }
     // endregion deleteFile tests
+
+    // region copyFile tests
+    @Test
+    fun `given file exists, when copying to local file, success is returned`() = runTest {
+        val sourceUri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
+        val destinationFile = File(context.filesDir, "newFile.jpeg")
+
+        val result = sut.copyFile(sourceUri, destinationFile.absolutePath)
+
+        assertTrue(result.isSuccess)
+        assertEquals(IMAGE_FILE_CONTENT.toByteArray().size.toLong(), destinationFile.length())
+    }
+
+    @Test
+    fun `given source file does not exist, when trying to copy it, DoesNotExist error is returned`() =
+        runTest {
+            val sourceUri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/doesNotExist")
+            val destinationFile = File(context.cacheDir, "newFile")
+
+            val result = sut.copyFile(sourceUri, destinationFile.absolutePath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+        }
+
+    @Test
+    fun `given destination is a directory, when trying to copy it, MixingFilesAndDirectories error is returned`() =
+        runTest {
+            val sourceUri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/doesNotExist")
+            val destinationPath = context.cacheDir.absolutePath
+
+            val result = sut.copyFile(sourceUri, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+        }
+
+    @Test
+    fun `given destination has no parent directory, when trying to copy it, NoParentDirectory is returned`() =
+        runTest {
+            val sourceUri =
+                fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
+            val destinationPath = File(context.externalCacheDir, "nonExistingDir/file").absolutePath
+
+            val result = sut.copyFile(sourceUri, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.NoParentDirectory)
+        }
+    // endregion copyFile tests
 }

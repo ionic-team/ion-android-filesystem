@@ -15,7 +15,9 @@ import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 
 class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
@@ -93,6 +95,37 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
             } else {
                 throw IONFLSTExceptions.DeleteFailed.Unknown()
             }
+        }.mapError()
+    }
+
+    /**
+     * Copy a file from one uri to a local file.
+     *
+     * Copying files from a content:// uri to another is not supported,
+     * as we cannot create new files with content:// scheme
+     *
+     * @param sourceUri the full content:// uri to the source file
+     * @param destinationPath a local file path to copy to
+     * @return success if the file was copied successfully, false otherwise
+     */
+    suspend fun copyFile(
+        sourceUri: Uri,
+        destinationPath: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val destinationFileObj = File(destinationPath)
+            when {
+                destinationFileObj.isDirectory -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+                destinationFileObj.parentFile?.exists() == false -> throw IONFLSTExceptions.CopyRenameFailed.NoParentDirectory()
+            }
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(destinationFileObj).use { outputStream ->
+                    val bytesWritten = inputStream.copyTo(outputStream)
+                    if (bytesWritten <= 0) {
+                        throw IONFLSTExceptions.UnknownError()
+                    }
+                }
+            } ?: throw IONFLSTExceptions.UnknownError()
         }.mapError()
     }
 

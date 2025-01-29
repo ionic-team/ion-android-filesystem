@@ -225,6 +225,118 @@ class IONFLSTControllerTests {
 
         assertTrue(result.isSuccess)
     }
+
+    @Test
+    fun `given source local file exists, when copying it, success is returned`() = runTest {
+        val sourceUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_FILES, "oldFile.txt")
+        val destinationUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_CACHE, "newFile.txt")
+        sut.saveFile(
+            sourceUri,
+            options = IONFLSTSaveOptions(
+                "lorem ipsum",
+                IONFLSTEncoding.DefaultCharset,
+                IONFLSTSaveMode.WRITE,
+                true
+            )
+        ).let { assertTrue(it.isSuccess) }
+
+        val result = sut.copy(sourceUri, destinationUri)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            Uri.parse("file://${context.externalCacheDir?.absolutePath}/newFile.txt"),
+            result.getOrNull()
+        )
+    }
+
+    @Test
+    fun `given source directory exists, when copying it, success is returned`() = runTest {
+        val sourceDirUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c")
+        val destinationDirUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "f")
+        // to copy a non-empty source directory
+        sut.createFile(
+            IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/file.txt"),
+            IONFLSTCreateOptions(recursive = true, exclusive = false)
+        ).let { assertTrue(it.isSuccess) }
+        sut.createDirectory(
+            IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/subdir"),
+            IONFLSTCreateOptions(recursive = true, exclusive = false)
+        ).let { assertTrue(it.isSuccess) }
+
+        val result = sut.copy(sourceDirUri, destinationDirUri)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            Uri.parse("file://${context.filesDir.absolutePath}/f"),
+            result.getOrNull()
+        )
+    }
+
+    @Test
+    fun `given source content file exists, when copying it, success is returned`() = runTest {
+        val sourceUriContentScheme = IONFLSTUri.Unresolved(
+            null,
+            "content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME"
+        )
+        val destinationUriLocalFile = IONFLSTUri.Unresolved(
+            IONFLSTFolderType.EXTERNAL_CACHE,
+            "newImage.jpeg"
+        )
+
+        val result = sut.copy(sourceUriContentScheme, destinationUriLocalFile)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            Uri.parse("file://${context.externalCacheDir?.absolutePath}/newImage.jpeg"),
+            result.getOrNull()
+        )
+    }
+
+    @Test
+    fun `given source local file exists, when moving it, success is returned`() = runTest {
+        val sourceUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_FILES, "oldFile.txt")
+        val destinationUri = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_CACHE, "newFile.txt")
+        sut.saveFile(
+            sourceUri,
+            options = IONFLSTSaveOptions(
+                "lorem ipsum",
+                IONFLSTEncoding.DefaultCharset,
+                IONFLSTSaveMode.WRITE,
+                true
+            )
+        ).let { assertTrue(it.isSuccess) }
+
+        val result = sut.move(sourceUri, destinationUri)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            Uri.parse("file://${context.externalCacheDir?.absolutePath}/newFile.txt"),
+            result.getOrNull()
+        )
+    }
+
+    @Test
+    fun `given source directory exists, when moving it, success is returned`() = runTest {
+        val sourceDirUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c")
+        val destinationDirUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "f")
+        // to copy a non-empty source directory
+        sut.createFile(
+            IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/file.txt"),
+            IONFLSTCreateOptions(recursive = true, exclusive = false)
+        ).let { assertTrue(it.isSuccess) }
+        sut.createDirectory(
+            IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/subdir"),
+            IONFLSTCreateOptions(recursive = true, exclusive = false)
+        ).let { assertTrue(it.isSuccess) }
+
+        val result = sut.move(sourceDirUri, destinationDirUri)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            Uri.parse("file://${context.filesDir.absolutePath}/f"),
+            result.getOrNull()
+        )
+    }
     // endregion happy path tests
 
     // region uri resolve errors
@@ -290,6 +402,62 @@ class IONFLSTControllerTests {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.NotSupportedForDirectory)
+        }
+
+    @Test
+    fun `given source local and destination content, when trying to copy, MixingLocalAndContent error is returned`() =
+        runTest {
+            val sourceUriLocalFile =
+                IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_FILES, "oldFile.txt")
+            val destinationUriContentScheme = IONFLSTUri.Unresolved(
+                null,
+                "content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME"
+            )
+            sut.createFile(
+                sourceUriLocalFile,
+                IONFLSTCreateOptions(recursive = true, exclusive = false)
+            ).let { assertTrue(it.isSuccess) }
+
+            val result = sut.copy(sourceUriLocalFile, destinationUriContentScheme)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.LocalToContent)
+        }
+
+    @Test
+    fun `given source content and destination content, when trying to copy, SourceAndDestinationContent error is returned`() =
+        runTest {
+            val sourceUriContentScheme = IONFLSTUri.Unresolved(
+                null,
+                "content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME"
+            )
+            val destinationUriContentScheme = IONFLSTUri.Unresolved(
+                null,
+                "content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME"
+            )
+
+            val result = sut.copy(sourceUriContentScheme, destinationUriContentScheme)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.SourceAndDestinationContent)
+        }
+
+    @Test
+    fun `given source content and destination local, when trying to move, NotSupportedForContentScheme error is returned`() =
+        runTest {
+            val sourceUriContentScheme = IONFLSTUri.Unresolved(
+                null,
+                "content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME"
+            )
+            val destinationUriLocalFile = IONFLSTUri.Unresolved(
+                IONFLSTFolderType.EXTERNAL_CACHE,
+                "newImage.jpeg"
+            )
+
+            val result = sut.move(sourceUriContentScheme, destinationUriLocalFile)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.NotSupportedForContentScheme)
         }
     // endregion uri resolve errors
 }

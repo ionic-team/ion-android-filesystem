@@ -163,7 +163,12 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val data = "Text"
             sut.saveFile(
                 path,
-                IONFLSTSaveOptions(data, IONFLSTEncoding.DefaultCharset, IONFLSTSaveMode.WRITE, false)
+                IONFLSTSaveOptions(
+                    data,
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    false
+                )
             )
 
             val result = sut.readFile(
@@ -597,4 +602,109 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
     }
     // endregion deleteFile tests
+
+    // region copyFile tests
+    @Test
+    fun `given source file has content, when we copy it, success is returned`() = runTest {
+        val sourceFile = fileInSubDir
+        val sourcePath = sourceFile.absolutePath
+        val destinationFile = fileInRootDir
+        val destinationPath = destinationFile.absolutePath
+        sut.saveFile(
+            sourcePath,
+            IONFLSTSaveOptions(
+                "data_to_copy",
+                IONFLSTEncoding.DefaultCharset,
+                IONFLSTSaveMode.WRITE,
+                createFileRecursive = true
+            )
+        )
+
+        val result = sut.copyFile(sourcePath, destinationPath)
+
+        assertTrue(result.isSuccess)
+        assertEquals("data_to_copy".length.toLong(), destinationFile.length())
+        // to confirm that original file is still there after copying
+        assertEquals("data_to_copy".length.toLong(), sourceFile.length())
+    }
+
+    @Test
+    fun `given source file is the same as destination, when we copy to it, success is returned`() =
+        runTest {
+            val sourcePath = fileInRootDir.absolutePath
+
+            val result = sut.copyFile(sourcePath, sourcePath)
+
+            assertTrue(result.isSuccess)
+        }
+
+    @Test
+    fun `given source file does not exist, when we try to copy it, DoesNotExist error is returned`() =
+        runTest {
+            val sourcePath = fileInSubDir.absolutePath
+            val destinationPath = fileInRootDir.absolutePath
+
+            val result = sut.copyFile(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+        }
+
+    @Test
+    fun `given destination is a directory, when we try to copy to it, MixingFilesAndDirectories is returned`() =
+        runTest {
+            val sourcePath = fileInRootDir.absolutePath
+            val destinationPath = testRootDirectory.absolutePath
+            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+
+            val result = sut.copyFile(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+        }
+    // endregion copyFile tests
+
+    // region renameFile tests
+    @Test
+    fun `given source file exists, when we rename it, success is returned`() = runTest {
+        val sourceFile = fileInSubDir
+        val sourcePath = sourceFile.absolutePath
+        val destinationFile = fileInRootDir
+        val destinationPath = destinationFile.absolutePath
+        sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+
+        val result = sut.renameFile(sourcePath, destinationPath)
+
+        assertTrue(result.isSuccess)
+        assertTrue(destinationFile.exists())
+        assertFalse(sourceFile.exists())
+    }
+
+    @Test
+    fun `given destination has no parent directory, when we try to rename it, NoParentDirectory is returned`() =
+        runTest {
+            val sourcePath = fileInRootDir.absolutePath
+            val destinationPath = fileInSubDir.absolutePath // sub-directories not created
+            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+
+            val result = sut.renameFile(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.NoParentDirectory)
+        }
+
+    @Test
+    fun `given source file is a directory, when we try to rename it, MixingFilesAndDirectories error is returned`() =
+        runTest {
+            val sourceDir = testRootDirectory
+            val sourcePath = sourceDir.absolutePath
+            val destinationFile = fileInRootDir
+            val destinationPath = destinationFile.absolutePath
+
+            val result = sut.renameFile(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+        }
+    // endregion renameFile tests
 }

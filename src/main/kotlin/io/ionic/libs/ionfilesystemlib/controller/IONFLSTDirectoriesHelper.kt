@@ -3,6 +3,7 @@ package io.ionic.libs.ionfilesystemlib.controller
 import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
 import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
 import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
+import io.ionic.libs.ionfilesystemlib.controller.internal.prepareForCopyOrRename
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
@@ -54,4 +55,51 @@ class IONFLSTDirectoriesHelper {
      */
     suspend fun deleteDirectory(fullPath: String, options: IONFLSTDeleteOptions): Result<Unit> =
         withContext(Dispatchers.IO) { deleteDirOrFile(fullPath, options) }
+
+    /**
+     * Recursively copies a directory's contents to another location
+     *
+     * @param sourcePath the full path to the source directory
+     * @param destinationPath the full path to the destination directory
+     * @return success if the directory was copied successfully, false otherwise
+     */
+    suspend fun copyDirectory(
+        sourcePath: String,
+        destinationPath: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            prepareForCopyOrRename(
+                sourcePath, destinationPath, forDirectories = true
+            ) { sourceFileObj: File, destinationFileObj: File ->
+                val copySuccess =
+                    sourceFileObj.copyRecursively(destinationFileObj, overwrite = false)
+                if (!copySuccess) {
+                    throw IONFLSTExceptions.CopyRenameFailed.Unknown()
+                }
+            }
+        }
+    }
+
+    /**
+     * Rename or move a directory from one path to another
+     *
+     * @param sourcePath the full path to the source directory
+     * @param destinationPath the full path to the destination directory
+     * @return success if the directory was renamed/moved successfully, false otherwise
+     */
+    suspend fun moveDirectory(
+        sourcePath: String,
+        destinationPath: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            prepareForCopyOrRename(
+                sourcePath, destinationPath, forDirectories = true
+            ) { sourceFileObj: File, destinationFileObj: File ->
+                val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
+                if (!renameSuccessful) {
+                    throw IONFLSTExceptions.CopyRenameFailed.Unknown()
+                }
+            }
+        }
+    }
 }

@@ -111,6 +111,33 @@ internal fun getMetadata(fileObject: File): IONFLSTMetadataResult = IONFLSTMetad
 )
 
 /**
+ * Check preconditions for copying or renaming local files/directories
+ *
+ * @param sourcePath path to the source file / directory
+ * @param destinationPath path to the destination file / directory
+ * @param forDirectories true if meant to be copying/renaming directories, false otherwise
+ * @return the file objects in an inline lambda, or throws error in case one of the checks fails
+ */
+internal inline fun prepareForCopyOrRename(
+    sourcePath: String,
+    destinationPath: String,
+    forDirectories: Boolean,
+    block: (sourceFileObj: File, destinationFileObj: File) -> Unit
+) {
+    val sourceFileObj = File(sourcePath)
+    val destinationFileObj = File(destinationPath)
+    when {
+        sourceFileObj == destinationFileObj -> return
+        !sourceFileObj.exists() -> throw IONFLSTExceptions.DoesNotExist()
+        !forDirectories && (sourceFileObj.isDirectory || destinationFileObj.isDirectory) -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+        forDirectories && (sourceFileObj.isFile || destinationFileObj.isFile) -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+        destinationFileObj.parentFile?.exists() == false -> throw IONFLSTExceptions.CopyRenameFailed.NoParentDirectory()
+        forDirectories && destinationFileObj.isDirectory -> throw IONFLSTExceptions.CopyRenameFailed.DestinationDirectoryExists()
+        else -> block(sourceFileObj, destinationFileObj)
+    }
+}
+
+/**
  * Gets the mime type from a file object
  *
  * @param fileObject the file object, that should represent an actual file (not a directory)

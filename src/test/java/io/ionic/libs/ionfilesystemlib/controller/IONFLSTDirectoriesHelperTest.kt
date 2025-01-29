@@ -12,8 +12,10 @@ import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     private lateinit var sut: IONFLSTDirectoriesHelper
@@ -30,7 +32,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val path = dir.absolutePath
 
             val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+                sut.createDirectory(
+                    path,
+                    IONFLSTCreateOptions(recursive = false, exclusive = false)
+                )
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -58,7 +63,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val path = dir.absolutePath
 
             val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+                sut.createDirectory(
+                    path,
+                    IONFLSTCreateOptions(recursive = false, exclusive = false)
+                )
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.NoParentDirectory)
@@ -134,7 +142,8 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = testRootDirectory.absolutePath
             sut.createDirectory(
-                dirInRootDir.absolutePath, IONFLSTCreateOptions(recursive = false, exclusive = false)
+                dirInRootDir.absolutePath,
+                IONFLSTCreateOptions(recursive = false, exclusive = false)
             )
 
             val result = sut.listDirectory(path)
@@ -241,4 +250,195 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
         }
     // endregion deleteDirectory tests
+
+    // region copyDirectory tests
+    @Test
+    fun `given empty source directory, when we copy it, success is returned`() = runTest {
+        val sourceDir = dirInSubDir
+        val sourcePath = sourceDir.absolutePath
+        val destinationDir = dirInRootDir
+        val destinationPath = destinationDir.absolutePath
+        sut.createDirectory(
+            sourcePath,
+            IONFLSTCreateOptions(
+                recursive = true,
+                exclusive = false
+            )
+        )
+
+        val result = sut.copyDirectory(sourcePath, destinationPath)
+
+        assertTrue(result.isSuccess)
+        assertTrue(destinationDir.exists())
+        assertTrue(sourceDir.exists())  // to confirm that source was not deleted when copying
+    }
+
+    @Test
+    fun `given source directory has children, when we copy it, success is returned`() = runTest {
+        val sourceDir = dirInSubDir
+        val sourcePath = sourceDir.absolutePath
+        val destinationDir = dirInRootDir
+        val destinationPath = destinationDir.absolutePath
+        IONFLSTLocalFilesHelper().apply {
+            saveFile(
+                File(sourceDir, "file1.txt").absolutePath,
+                IONFLSTSaveOptions(
+                    "data \nfile 1.",
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    true
+                )
+            )
+            saveFile(
+                File(sourceDir, "file2.txt").absolutePath,
+                IONFLSTSaveOptions(
+                    "text for file #2.",
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    false
+                )
+            )
+        }
+        sut.createDirectory(
+            File(sourceDir, "childDirectory").absolutePath,
+            IONFLSTCreateOptions(
+                recursive = true,
+                exclusive = false
+            )
+        )
+
+        val result = sut.copyDirectory(sourcePath, destinationPath)
+
+        assertTrue(result.isSuccess)
+        assertTrue(destinationDir.exists())
+        destinationDir.listFiles()?.toList().let { children ->
+            assertNotNull(children)
+            assertEquals(3, children?.size)
+            assertEquals(1, children?.count { it.isDirectory && it.name == "childDirectory" })
+            assertEquals(
+                1,
+                children?.count { it.isFile && it.length() == "data \nfile 1.".length.toLong() }
+            )
+            assertEquals(
+                1,
+                children?.count { it.isFile && it.length() == "text for file #2.".length.toLong() }
+            )
+        }
+    }
+
+    @Test
+    fun `given source directory does not exist, when we try to copy it, DoesNotExist error is returned`() =
+        runTest {
+            val sourcePath = dirInRootDir.absolutePath
+            val destinationPath = testRootDirectory.absolutePath
+
+            val result = sut.copyDirectory(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+        }
+
+    @Test
+    fun `given destination is a file, when we try to copy to it, MixingFilesAndDirectories is returned`() =
+        runTest {
+            val sourcePath = dirInRootDir.absolutePath
+            val destinationPath = fileInRootDir.let {
+                it.createNewFile()
+                it.absolutePath
+            }
+            sut.createDirectory(
+                sourcePath,
+                IONFLSTCreateOptions(recursive = true, exclusive = false)
+            )
+
+            val result = sut.copyDirectory(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+        }
+    // endregion copyDirectory tests
+
+    // region moveDirectory tests
+    @Test
+    fun `given source directory exists, when we move it, success is returned`() = runTest {
+        val sourceDir = dirInSubDir
+        val sourcePath = sourceDir.absolutePath
+        val destinationDir = dirInRootDir
+        val destinationPath = destinationDir.absolutePath
+        sut.createDirectory(
+            File(sourceDir, "childDirectory").absolutePath,
+            IONFLSTCreateOptions(recursive = true, exclusive = false)
+        )
+        File(sourceDir, "doc.pdf").createNewFile()
+        File(sourceDir, "vid.mkv").createNewFile()
+        File(sourceDir, "audio.mp3").createNewFile()
+
+        val result = sut.moveDirectory(sourcePath, destinationPath)
+
+        assertTrue(result.isSuccess)
+        assertTrue(destinationDir.exists())
+        destinationDir.listFiles()?.toList().let { children ->
+            assertNotNull(children)
+            assertEquals(4, children?.size)
+        }
+        assertFalse(sourceDir.exists())
+    }
+
+    @Test
+    fun `given source directory is the same as destination, when we move it, success is returned`() =
+        runTest {
+            val sourcePath = dirInSubDir.absolutePath
+
+            val result = sut.moveDirectory(sourcePath, sourcePath)
+
+            assertTrue(result.isSuccess)
+        }
+
+    @Test
+    fun `given destination has no parent directory, when we try to move to it, NoParentDirectory is returned`() =
+        runTest {
+            val sourcePath = dirInRootDir.absolutePath
+            val destinationPath = dirInSubDir.absolutePath // sub-directories not created
+            sut.createDirectory(
+                sourcePath,
+                IONFLSTCreateOptions(recursive = true, exclusive = false)
+            )
+
+            val result = sut.moveDirectory(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.NoParentDirectory)
+        }
+
+    @Test
+    fun `given source is a file, when we try to move it, MixingFilesAndDirectories error is returned`() =
+        runTest {
+            val sourcePath = fileInRootDir.let {
+                it.createNewFile()
+                it.absolutePath
+            }
+            val destinationPath = dirInRootDir.absolutePath
+
+            val result = sut.moveDirectory(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+        }
+
+    @Test
+    fun `given destination directory already exists, when we try to move a directory to it, DestinationDirectoryExists error is returned`() =
+        runTest {
+            val sourcePath = dirInRootDir.absolutePath
+            val destinationPath = testRootDirectory.absolutePath
+            sut.createDirectory(
+                sourcePath,
+                IONFLSTCreateOptions(recursive = true, exclusive = false)
+            )
+
+            val result = sut.moveDirectory(sourcePath, destinationPath)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.DestinationDirectoryExists)
+        }
+    // endregion moveDirectory tests
 }

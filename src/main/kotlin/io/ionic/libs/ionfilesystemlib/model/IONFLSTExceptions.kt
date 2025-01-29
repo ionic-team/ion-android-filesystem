@@ -31,4 +31,24 @@ sealed class IONFLSTExceptions(message: String) : Exception(message) {
 
     class NotSupportedForFiles :
         IONFLSTExceptions("The request operation is not supported on files, only directories")
+
+    sealed class CopyRenameFailed(message: String) : IONFLSTExceptions(message) {
+        class Unknown :
+            CopyRenameFailed("Failed to copy/rename the file/directory due to unknown reason")
+
+        class MixingFilesAndDirectories :
+            CopyRenameFailed("Copy and rename is only allowed either between files or between directories")
+
+        class LocalToContent :
+            CopyRenameFailed("Copy is not allowed from local file to content:// file")
+
+        class SourceAndDestinationContent :
+            CopyRenameFailed("Copy is not allowed from content:// to content://")
+
+        class DestinationDirectoryExists :
+            CopyRenameFailed("Cannot copy/rename to an existing directory")
+
+        class NoParentDirectory :
+            CopyRenameFailed("Unable to copy/rename because the destination's parent directory does not exist")
+    }
 }

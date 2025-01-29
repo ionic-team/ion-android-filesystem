@@ -35,12 +35,7 @@ internal fun createDirOrFile(
     runCatching {
         val file = File(fullPath)
         if (file.exists()) {
-            if (options.exclusive) {
-                throw IONFLSTExceptions.CreateFailed.AlreadyExists()
-            } else {
-                // file/directory creation is not going to do anything if file/directory already exists
-                return@runCatching
-            }
+            throw IONFLSTExceptions.CreateFailed.AlreadyExists()
         }
         if (!checkParentDirectory(file, create = options.recursive)) {
             throw IONFLSTExceptions.CreateFailed.NoParentDirectory()

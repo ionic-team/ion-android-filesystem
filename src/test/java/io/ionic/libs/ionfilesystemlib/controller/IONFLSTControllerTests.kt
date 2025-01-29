@@ -65,8 +65,7 @@ class IONFLSTControllerTests {
             "fileToCreate.txt"
         )
 
-        val result =
-            sut.createFile(uriLocalFile, IONFLSTCreateOptions(recursive = false, exclusive = false))
+        val result = sut.createFile(uriLocalFile, IONFLSTCreateOptions(recursive = false))
 
         assertTrue(result.isSuccess)
         assertEquals(
@@ -83,10 +82,7 @@ class IONFLSTControllerTests {
                 "subDir1/subDir2/directory"
             )
 
-            val result = sut.createDirectory(
-                uriLocalFile,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            )
+            val result = sut.createDirectory(uriLocalFile, IONFLSTCreateOptions(recursive = true))
 
             assertTrue(result.isSuccess)
             assertEquals(
@@ -174,15 +170,15 @@ class IONFLSTControllerTests {
         runTest {
             sut.createDirectory(
                 IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "dir/child1"),
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
+                IONFLSTCreateOptions(recursive = true)
             ).let { assertTrue(it.isSuccess) }
             sut.createDirectory(
                 IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "dir/child2"),
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
+                IONFLSTCreateOptions(recursive = true)
             ).let { assertTrue(it.isSuccess) }
             sut.createDirectory(
                 IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "dir/child3"),
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
+                IONFLSTCreateOptions(recursive = true)
             ).let { assertTrue(it.isSuccess) }
 
             val result =
@@ -195,7 +191,7 @@ class IONFLSTControllerTests {
     @Test
     fun `given local file exists, when deleting it, success is returned`() = runTest {
         val localFileUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "file.txt")
-        sut.createFile(localFileUri, IONFLSTCreateOptions(recursive = true, exclusive = false))
+        sut.createFile(localFileUri, IONFLSTCreateOptions(recursive = true))
             .let { assertTrue(it.isSuccess) }
 
         val result = sut.delete(localFileUri, options = IONFLSTDeleteOptions(recursive = false))
@@ -206,7 +202,7 @@ class IONFLSTControllerTests {
     @Test
     fun `given local directory exists, when deleting it, success is returned`() = runTest {
         val localDirUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "dir")
-        sut.createDirectory(localDirUri, IONFLSTCreateOptions(recursive = true, exclusive = false))
+        sut.createDirectory(localDirUri, IONFLSTCreateOptions(recursive = true))
             .let { assertTrue(it.isSuccess) }
 
         val result = sut.delete(localDirUri, options = IONFLSTDeleteOptions(recursive = false))
@@ -256,11 +252,11 @@ class IONFLSTControllerTests {
         // to copy a non-empty source directory
         sut.createFile(
             IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/file.txt"),
-            IONFLSTCreateOptions(recursive = true, exclusive = false)
+            IONFLSTCreateOptions(recursive = true)
         ).let { assertTrue(it.isSuccess) }
         sut.createDirectory(
             IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/subdir"),
-            IONFLSTCreateOptions(recursive = true, exclusive = false)
+            IONFLSTCreateOptions(recursive = true)
         ).let { assertTrue(it.isSuccess) }
 
         val result = sut.copy(sourceDirUri, destinationDirUri)
@@ -322,11 +318,11 @@ class IONFLSTControllerTests {
         // to copy a non-empty source directory
         sut.createFile(
             IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/file.txt"),
-            IONFLSTCreateOptions(recursive = true, exclusive = false)
+            IONFLSTCreateOptions(recursive = true)
         ).let { assertTrue(it.isSuccess) }
         sut.createDirectory(
             IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_CACHE, "c/subdir"),
-            IONFLSTCreateOptions(recursive = true, exclusive = false)
+            IONFLSTCreateOptions(recursive = true)
         ).let { assertTrue(it.isSuccess) }
 
         val result = sut.move(sourceDirUri, destinationDirUri)
@@ -359,10 +355,7 @@ class IONFLSTControllerTests {
                 "/data/synthetic/photo_picker/image_file_to_create.jpeg"
             )
 
-            val result = sut.createFile(
-                uriContentScheme,
-                IONFLSTCreateOptions(recursive = false, exclusive = true)
-            )
+            val result = sut.createFile(uriContentScheme, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.NotSupportedForContentScheme)
@@ -375,15 +368,10 @@ class IONFLSTControllerTests {
                 parentFolder = IONFLSTFolderType.INTERNAL_FILES,
                 "fileToCreate.txt"
             )
-            sut.createFile(
-                uriLocalFile,
-                IONFLSTCreateOptions(recursive = false, exclusive = false)
-            ).let { assertTrue(it.isSuccess) }
+            sut.createFile(uriLocalFile, IONFLSTCreateOptions(recursive = false))
+                .let { assertTrue(it.isSuccess) }
 
-            val result = sut.createDirectory(
-                uriLocalFile,
-                IONFLSTCreateOptions(recursive = false, exclusive = false)
-            )
+            val result = sut.createDirectory(uriLocalFile, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.NotSupportedForFiles)
@@ -393,10 +381,8 @@ class IONFLSTControllerTests {
     fun `given directory exists, when trying to read a file in it, NotSupportedForDirectory error is returned`() =
         runTest {
             val uriLocalDirectory = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_CACHE, "dir")
-            sut.createDirectory(
-                uriLocalDirectory,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            ).let { assertTrue(it.isSuccess) }
+            sut.createDirectory(uriLocalDirectory, IONFLSTCreateOptions(recursive = true))
+                .let { assertTrue(it.isSuccess) }
 
             val result = sut.readFile(uriLocalDirectory, IONFLSTReadOptions(IONFLSTEncoding.Base64))
 
@@ -413,10 +399,8 @@ class IONFLSTControllerTests {
                 null,
                 "content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME"
             )
-            sut.createFile(
-                sourceUriLocalFile,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            ).let { assertTrue(it.isSuccess) }
+            sut.createFile(sourceUriLocalFile, IONFLSTCreateOptions(recursive = true))
+                .let { assertTrue(it.isSuccess) }
 
             val result = sut.copy(sourceUriLocalFile, destinationUriContentScheme)
 

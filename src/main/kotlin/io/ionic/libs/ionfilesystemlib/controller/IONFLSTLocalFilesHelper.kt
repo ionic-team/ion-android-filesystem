@@ -95,18 +95,11 @@ class IONFLSTLocalFilesHelper {
         runCatching {
             val file = File(fullPath)
             if (!file.exists()) {
-                if (options.createFileRecursive == null) {
-                    throw IONFLSTExceptions.DoesNotExist()
-                } else {
-                    val createFileResult = createFile(
-                        fullPath,
-                        IONFLSTCreateOptions(
-                            recursive = options.createFileRecursive,
-                            exclusive = false
-                        )
-                    )
-                    createFileResult.exceptionOrNull()?.let { throw it }
-                }
+                val createFileResult = createFile(
+                    fullPath,
+                    IONFLSTCreateOptions(recursive = options.createFileRecursive)
+                )
+                createFileResult.exceptionOrNull()?.let { throw it }
             }
             val fileStream = FileOutputStream(file, options.mode == IONFLSTSaveMode.APPEND)
             if (options.encoding is IONFLSTEncoding.WithCharset) {

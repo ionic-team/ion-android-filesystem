@@ -9,13 +9,12 @@ package io.ionic.libs.ionfilesystemlib.model
  * @param mode the mode for saving to a file; see [IONFLSTSaveMode]
  * @param createFileRecursive true to also create the file and missing directories in case they do not exist;
  *  false to create only missing file, but not create missing parent directories
- *  null if not meant to create the file, returns error if file does not exist
  */
 data class IONFLSTSaveOptions(
     val data: String,
     val encoding: IONFLSTEncoding,
     val mode: IONFLSTSaveMode,
-    val createFileRecursive: Boolean?
+    val createFileRecursive: Boolean
 )
 
 /**

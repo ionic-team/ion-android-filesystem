@@ -37,7 +37,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+                sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(file.exists())
@@ -51,7 +51,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(path, IONFLSTCreateOptions(recursive = true, exclusive = false))
+                sut.createFile(path, IONFLSTCreateOptions(recursive = true))
 
             assertTrue(result.isSuccess)
             assertTrue(file.exists())
@@ -65,7 +65,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val path = file.absolutePath
 
             val result =
-                sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+                sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.NoParentDirectory)
@@ -79,7 +79,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val data = "Write"
 
             val result = sut.saveFile(
@@ -101,7 +101,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val data = "Append"
 
             val result = sut.saveFile(
@@ -123,7 +123,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val dataBase64 =
                 Base64.getEncoder().encodeToString("Base 64 w/ special ch4rsª~´".toByteArray())
 
@@ -146,7 +146,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.readFile(path, IONFLSTReadOptions(encoding = IONFLSTEncoding.Default))
 
@@ -159,7 +159,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val data = "Text"
             sut.saveFile(
                 path,
@@ -184,7 +184,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val data = Base64.getEncoder().encodeToString("Base 64 +/ =!\uD83D\uDE00".toByteArray())
             sut.saveFile(
                 path,
@@ -204,7 +204,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val base64 = Base64.getEncoder().encodeToString("Base 64 +/ =!  ".toByteArray())
             val data = "data:textPlain;base64, $base64"
             sut.saveFile(
@@ -227,7 +227,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val data = "Lorem ipsum"
             sut.saveFile(
                 path,
@@ -247,7 +247,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val originalData = "Original"
             sut.saveFile(
                 path,
@@ -277,7 +277,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val file = fileInRootDir
             val path = file.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             val originalData = "Original"
             sut.saveFile(
                 path,
@@ -340,26 +340,6 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
 
             assertTrue(result.isSuccess)
             assertTrue(file.length() > 0)
-        }
-
-    @Test
-    fun `given file does not exist, when saving contents to file with create=null, DoesNotExist error is returned`() =
-        runTest {
-            val file = fileInRootDir
-            val path = file.absolutePath
-
-            val result = sut.saveFile(
-                path,
-                IONFLSTSaveOptions(
-                    "any data...",
-                    encoding = IONFLSTEncoding.DefaultCharset,
-                    mode = IONFLSTSaveMode.WRITE,
-                    createFileRecursive = null
-                )
-            )
-
-            assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
         }
 
     @Test
@@ -435,7 +415,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             mockkMimeTypeMap(TEXT_MIME_TYPE)
             val path = fileInRootDir.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -488,7 +468,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given file is updated after creation, when getting file metadata, the lastModifiedTimestamp is more recent than the created`() =
         runTest {
             val path = fileInRootDir.absolutePath
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
             testScheduler.advanceTimeBy(60_000L)
             sut.saveFile(
                 path,
@@ -513,7 +493,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = fileInRootDir.absolutePath
             every { IONFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.N
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -526,7 +506,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = File(testRootDirectory, "audio_file.3ga").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -539,7 +519,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = File(testRootDirectory, "code.js").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -555,7 +535,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = File(testRootDirectory, "fileWithoutExtension").absolutePath
             mockkMimeTypeMap(null)
-            sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.getFileMetadata(path)
 
@@ -583,7 +563,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given file exists, when we delete it, success is returned`() = runTest {
         val file = fileInRootDir
         val path = file.absolutePath
-        sut.createFile(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+        sut.createFile(path, IONFLSTCreateOptions(recursive = false))
 
         val result = sut.deleteFile(path)
 
@@ -655,7 +635,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = fileInRootDir.absolutePath
             val destinationPath = testRootDirectory.absolutePath
-            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.copyFile(sourcePath, destinationPath)
 
@@ -671,7 +651,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         val sourcePath = sourceFile.absolutePath
         val destinationFile = fileInRootDir
         val destinationPath = destinationFile.absolutePath
-        sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+        sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true))
 
         val result = sut.renameFile(sourcePath, destinationPath)
 
@@ -685,7 +665,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = fileInRootDir.absolutePath
             val destinationPath = fileInSubDir.absolutePath // sub-directories not created
-            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+            sut.createFile(sourcePath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.renameFile(sourcePath, destinationPath)
 

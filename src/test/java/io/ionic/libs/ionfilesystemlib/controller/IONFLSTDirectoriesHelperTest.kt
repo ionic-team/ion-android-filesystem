@@ -31,11 +31,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInRootDir
             val path = dir.absolutePath
 
-            val result =
-                sut.createDirectory(
-                    path,
-                    IONFLSTCreateOptions(recursive = false, exclusive = false)
-                )
+            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -48,8 +44,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val path = dir.absolutePath
 
-            val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = true, exclusive = false))
+            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = true))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -62,11 +57,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val path = dir.absolutePath
 
-            val result =
-                sut.createDirectory(
-                    path,
-                    IONFLSTCreateOptions(recursive = false, exclusive = false)
-                )
+            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.NoParentDirectory)
@@ -80,23 +71,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val path = existingDir.absolutePath
 
             val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = true, exclusive = true))
+                sut.createDirectory(path, IONFLSTCreateOptions(recursive = true))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.AlreadyExists)
-            assertTrue(existingDir.exists())
-        }
-
-    @Test
-    fun `given directory exists, when we attempt to create it with exclusive=false, success is returned`() =
-        runTest {
-            val existingDir = testRootDirectory
-            val path = existingDir.absolutePath
-
-            val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = true, exclusive = false))
-
-            assertTrue(result.isSuccess)
             assertTrue(existingDir.exists())
         }
     // endregion createDirectory tests
@@ -141,10 +119,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given directory has a sub-directory, when listing directory, a one-item list with the directory metadata is returned`() =
         runTest {
             val path = testRootDirectory.absolutePath
-            sut.createDirectory(
-                dirInRootDir.absolutePath,
-                IONFLSTCreateOptions(recursive = false, exclusive = false)
-            )
+            sut.createDirectory(dirInRootDir.absolutePath, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.listDirectory(path)
 
@@ -160,9 +135,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given directory several nested directories, when listing directory, a list with the directories metadata is returned`() =
         runTest {
             val path = testRootDirectory.absolutePath
-            sut.createDirectory(
-                dirInSubDir.absolutePath, IONFLSTCreateOptions(recursive = true, exclusive = false)
-            )
+            sut.createDirectory(dirInSubDir.absolutePath, IONFLSTCreateOptions(recursive = true))
             IONFLSTLocalFilesHelper().saveFile(
                 fileInSubDir.absolutePath,
                 IONFLSTSaveOptions(
@@ -200,7 +173,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val dir = dirInRootDir
             val path = dir.absolutePath
-            sut.createDirectory(path, IONFLSTCreateOptions(recursive = false, exclusive = false))
+            sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
 
             val result = sut.deleteDirectory(path, IONFLSTDeleteOptions(recursive = false))
 
@@ -214,7 +187,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true))
 
             val result =
                 sut.deleteDirectory(dirToDelete.absolutePath, IONFLSTDeleteOptions(true))
@@ -229,7 +202,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true, exclusive = false))
+            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.deleteDirectory(dirToDelete.absolutePath, IONFLSTDeleteOptions(false))
 
@@ -258,13 +231,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val sourcePath = sourceDir.absolutePath
         val destinationDir = dirInRootDir
         val destinationPath = destinationDir.absolutePath
-        sut.createDirectory(
-            sourcePath,
-            IONFLSTCreateOptions(
-                recursive = true,
-                exclusive = false
-            )
-        )
+        sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
 
         val result = sut.copyDirectory(sourcePath, destinationPath)
 
@@ -301,10 +268,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         }
         sut.createDirectory(
             File(sourceDir, "childDirectory").absolutePath,
-            IONFLSTCreateOptions(
-                recursive = true,
-                exclusive = false
-            )
+            IONFLSTCreateOptions(recursive = true)
         )
 
         val result = sut.copyDirectory(sourcePath, destinationPath)
@@ -346,10 +310,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
                 it.createNewFile()
                 it.absolutePath
             }
-            sut.createDirectory(
-                sourcePath,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            )
+            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.copyDirectory(sourcePath, destinationPath)
 
@@ -367,7 +328,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val destinationPath = destinationDir.absolutePath
         sut.createDirectory(
             File(sourceDir, "childDirectory").absolutePath,
-            IONFLSTCreateOptions(recursive = true, exclusive = false)
+            IONFLSTCreateOptions(recursive = true)
         )
         File(sourceDir, "doc.pdf").createNewFile()
         File(sourceDir, "vid.mkv").createNewFile()
@@ -399,10 +360,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = dirInRootDir.absolutePath
             val destinationPath = dirInSubDir.absolutePath // sub-directories not created
-            sut.createDirectory(
-                sourcePath,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            )
+            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.moveDirectory(sourcePath, destinationPath)
 
@@ -430,10 +388,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = dirInRootDir.absolutePath
             val destinationPath = testRootDirectory.absolutePath
-            sut.createDirectory(
-                sourcePath,
-                IONFLSTCreateOptions(recursive = true, exclusive = false)
-            )
+            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
 
             val result = sut.moveDirectory(sourcePath, destinationPath)
 

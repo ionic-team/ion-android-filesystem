@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import android.content.Context
 import android.net.Uri

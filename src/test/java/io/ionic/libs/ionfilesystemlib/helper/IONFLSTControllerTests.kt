@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import android.net.Uri
 import app.cash.turbine.test

@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller.internal
+package io.ionic.libs.ionfilesystemlib.helper.internal
 
 import android.annotation.SuppressLint
 import android.os.Build

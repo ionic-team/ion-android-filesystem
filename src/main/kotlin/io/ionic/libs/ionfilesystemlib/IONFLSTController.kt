@@ -2,15 +2,15 @@ package io.ionic.libs.ionfilesystemlib
 
 import android.content.Context
 import android.net.Uri
-import io.ionic.libs.ionfilesystemlib.controller.IONFLSTContentHelper
-import io.ionic.libs.ionfilesystemlib.controller.IONFLSTDirectoriesHelper
-import io.ionic.libs.ionfilesystemlib.controller.IONFLSTFUriHelper
-import io.ionic.libs.ionfilesystemlib.controller.IONFLSTLocalFilesHelper
-import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolved
-import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsLocal
-import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsLocalDirectory
-import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsLocalFile
-import io.ionic.libs.ionfilesystemlib.controller.internal.useUriIfResolvedAsNonDirectory
+import io.ionic.libs.ionfilesystemlib.helper.IONFLSTContentHelper
+import io.ionic.libs.ionfilesystemlib.helper.IONFLSTDirectoriesHelper
+import io.ionic.libs.ionfilesystemlib.helper.IONFLSTFUriHelper
+import io.ionic.libs.ionfilesystemlib.helper.IONFLSTLocalFilesHelper
+import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolved
+import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocal
+import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocalDirectory
+import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocalFile
+import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsNonDirectory
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions

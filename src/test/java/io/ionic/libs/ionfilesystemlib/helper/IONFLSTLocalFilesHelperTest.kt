@@ -1,10 +1,10 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import android.os.Build
 import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
 import io.ionic.libs.ionfilesystemlib.common.LOREM_IPSUM_2800_CHARS
-import io.ionic.libs.ionfilesystemlib.controller.internal.IONFLSTBuildConfig
+import io.ionic.libs.ionfilesystemlib.helper.internal.IONFLSTBuildConfig
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions

@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import android.content.ContentResolver
 import android.database.Cursor
@@ -6,9 +6,9 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import io.ionic.libs.ionfilesystemlib.controller.internal.FILE_MIME_TYPE_FALLBACK
-import io.ionic.libs.ionfilesystemlib.controller.internal.readByChunks
-import io.ionic.libs.ionfilesystemlib.controller.internal.readFull
+import io.ionic.libs.ionfilesystemlib.helper.internal.FILE_MIME_TYPE_FALLBACK
+import io.ionic.libs.ionfilesystemlib.helper.internal.readByChunks
+import io.ionic.libs.ionfilesystemlib.helper.internal.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult

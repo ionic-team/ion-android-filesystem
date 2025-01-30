@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions

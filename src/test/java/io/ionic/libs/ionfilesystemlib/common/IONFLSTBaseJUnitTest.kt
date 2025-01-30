@@ -1,9 +1,8 @@
 package io.ionic.libs.ionfilesystemlib.common
 
-import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
-import io.ionic.libs.ionfilesystemlib.controller.internal.IONFLSTBuildConfig
+import io.ionic.libs.ionfilesystemlib.helper.internal.IONFLSTBuildConfig
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject

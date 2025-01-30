@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.controller.internal
+package io.ionic.libs.ionfilesystemlib.helper.internal
 
 import android.util.Base64
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding

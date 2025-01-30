@@ -1,13 +1,13 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
 import android.util.Base64
 import androidx.annotation.VisibleForTesting
-import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
-import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
-import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
-import io.ionic.libs.ionfilesystemlib.controller.internal.prepareForCopyOrRename
-import io.ionic.libs.ionfilesystemlib.controller.internal.readByChunks
-import io.ionic.libs.ionfilesystemlib.controller.internal.readFull
+import io.ionic.libs.ionfilesystemlib.helper.internal.createDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.internal.deleteDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.internal.getMetadata
+import io.ionic.libs.ionfilesystemlib.helper.internal.prepareForCopyOrRename
+import io.ionic.libs.ionfilesystemlib.helper.internal.readByChunks
+import io.ionic.libs.ionfilesystemlib.helper.internal.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding

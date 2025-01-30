@@ -1,6 +1,6 @@
-package io.ionic.libs.ionfilesystemlib.controller.internal
+package io.ionic.libs.ionfilesystemlib.helper.internal
 
-import io.ionic.libs.ionfilesystemlib.controller.IONFLSTFUriHelper
+import io.ionic.libs.ionfilesystemlib.helper.IONFLSTFUriHelper
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTUri
 import io.ionic.libs.ionfilesystemlib.model.LocalUriType

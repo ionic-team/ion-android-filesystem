@@ -1,9 +1,9 @@
-package io.ionic.libs.ionfilesystemlib.controller
+package io.ionic.libs.ionfilesystemlib.helper
 
-import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
-import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
-import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
-import io.ionic.libs.ionfilesystemlib.controller.internal.prepareForCopyOrRename
+import io.ionic.libs.ionfilesystemlib.helper.internal.createDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.internal.deleteDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.internal.getMetadata
+import io.ionic.libs.ionfilesystemlib.helper.internal.prepareForCopyOrRename
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions

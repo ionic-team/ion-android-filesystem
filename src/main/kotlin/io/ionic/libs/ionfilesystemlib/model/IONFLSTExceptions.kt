@@ -21,8 +21,6 @@ sealed class IONFLSTExceptions(message: String) : Exception(message) {
 
     class UnknownError : IONFLSTExceptions("An unknown error occurred.")
 
-    class NotAllowed : IONFLSTExceptions("Unable to execute the requested operation on the file")
-
     class NotSupportedForContentScheme :
         IONFLSTExceptions("The requested operation is not supported on a content:// uri")
 

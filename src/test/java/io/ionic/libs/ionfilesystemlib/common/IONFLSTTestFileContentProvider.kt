@@ -9,8 +9,10 @@ import android.os.ParcelFileDescriptor
 import android.provider.BaseColumns
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 
 internal const val TEST_CONTENT_PROVIDER_NAME = "test.file.provider"
 internal val TEST_TIMESTAMP: Long = System.currentTimeMillis()
@@ -20,12 +22,16 @@ internal const val TEXT_FILE_CONTENT = "This is a\nmultiline\ntext"
 internal const val IMAGE_FILE_CONTENT =
     "\u0005\u0004Hljı{#«ë5{»Ü\u000FY\u000B:‹‡'\u000EBÿN\u0005Ãz…Ÿ÷£WøΩıòljı{>ﬁ'–ı{>‡<V+\u0015ÏÒ\uF8FFÒ‰IS‰‡ú\u001A\u0007BÅí%?˜ΩÔxjÙ1"
 
+/**
+ * A simple test double of [android.content.ContentProvider].
+ * Implements some operations that allow manipulating uris to files with content:// scheme
+ */
 internal class IONFLSTTestFileContentProvider : ContentProvider() {
 
     private val rootDir
         get() = File(System.getProperty("java.io.tmpdir"), "testCP")
 
-    private val fileList: List<TestFileContent> = listOf(
+    private val originalTestFileList = listOf(
         TestFileContent(
             name = "$TEXT_FILE_NAME.txt",
             data = TEXT_FILE_CONTENT,
@@ -38,19 +44,35 @@ internal class IONFLSTTestFileContentProvider : ContentProvider() {
         )
     )
 
+    private val fileList: MutableList<TestFileContent> = originalTestFileList.toMutableList()
+
     override fun onCreate(): Boolean {
         rootDir.mkdirs()
         rootDir.mkdir()
         fileList.forEach { file ->
             File(rootDir, file.name).apply {
                 createNewFile()
-                writeBytes(file.data.toByteArray())
+                BufferedOutputStream(FileOutputStream(this)).use {
+                    it.write(file.data.toByteArray())
+                }
             }
         }
         return true
     }
 
+    fun addToProvider(testfile: TestFileContent) {
+        fileList.add(testfile)
+        File(rootDir, testfile.name).apply {
+            createNewFile()
+            BufferedOutputStream(FileOutputStream(this)).use {
+                it.write(testfile.data.toByteArray())
+            }
+        }
+    }
+
     fun cleanup() {
+        fileList.clear()
+        fileList.addAll(originalTestFileList)
         rootDir.deleteRecursively()
     }
 
@@ -129,7 +151,7 @@ internal class IONFLSTTestFileContentProvider : ContentProvider() {
         return fileList.firstOrNull { it.name == fileName || it.nameWithoutExtension == fileName }
     }
 
-    private data class TestFileContent(
+    internal data class TestFileContent(
         val name: String,
         val data: String,
         val mimeType: String?

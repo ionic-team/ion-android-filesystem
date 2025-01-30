@@ -1,26 +1,32 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
 import android.util.Base64
+import androidx.annotation.VisibleForTesting
 import io.ionic.libs.ionfilesystemlib.controller.internal.createDirOrFile
 import io.ionic.libs.ionfilesystemlib.controller.internal.deleteDirOrFile
 import io.ionic.libs.ionfilesystemlib.controller.internal.getMetadata
 import io.ionic.libs.ionfilesystemlib.controller.internal.prepareForCopyOrRename
+import io.ionic.libs.ionfilesystemlib.controller.internal.readByChunks
+import io.ionic.libs.ionfilesystemlib.controller.internal.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
 class IONFLSTLocalFilesHelper {
@@ -42,17 +48,52 @@ class IONFLSTLocalFilesHelper {
                 throw IONFLSTExceptions.DoesNotExist()
             }
             val inputStream = FileInputStream(file)
-            val fileContents: String = if (options.encoding is IONFLSTEncoding.WithCharset) {
-                val reader =
-                    InputStreamReader(inputStream, options.encoding.charset)
-                reader.use { reader.readText() }
-            } else {
-                val byteArray = inputStream.readBytes()
-                Base64.encodeToString(byteArray, Base64.NO_WRAP)
-            }
+            val fileContents: String = inputStream.readFull(options)
             return@runCatching fileContents
         }
     }
+
+    /**
+     * Reads the contents of a file in chunks
+     *
+     * Useful when the file does not fit in entirely memory.
+     *
+     * @param options options for reading the file in chunks; refer to [IONFLSTReadByChunksOptions]
+     * @return a (cold) flow in which the chunks are emitted;
+     * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
+     */
+    fun readFileByChunks(
+        fullPath: String,
+        options: IONFLSTReadByChunksOptions,
+    ): Flow<String> = readFileByChunks(fullPath, options, bufferSize = DEFAULT_BUFFER_SIZE)
+
+    /**
+     * Internal method for reading the contents of a file in chunks, allowing to pass a variable buffer size
+     *
+     * @param options options for reading the file in chunks; refer to [IONFLSTReadByChunksOptions]
+     * @param bufferSize the size of the buffer for reading from the stream.
+     *  This is different from the chunk size, and should be a value that aligns with the OS page size
+     *  The buffer size may alter the chunkSize value to be used; refer to [IONFLSTReadByChunksOptions]
+     * @return a (cold) flow in which the chunks are emitted; the flow completes after emissions
+     */
+    @VisibleForTesting
+    internal fun readFileByChunks(
+        fullPath: String,
+        options: IONFLSTReadByChunksOptions,
+        bufferSize: Int
+    ): Flow<String> = flow {
+        val file = File(fullPath)
+        if (!file.exists()) {
+            throw IONFLSTExceptions.DoesNotExist()
+        }
+        FileInputStream(file).use { inputStream ->
+            inputStream.readByChunks(
+                options,
+                bufferSize,
+                onChunkRead = { chunk -> emit(chunk) }
+            )
+        }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Gets information about a file or directory

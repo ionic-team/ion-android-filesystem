@@ -15,10 +15,15 @@ import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTUri
 import io.ionic.libs.ionfilesystemlib.model.LocalUriType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 
 /**
  * Entry point in IONFilesystemLib-Android
@@ -74,7 +79,9 @@ class IONFLSTController(
         }
 
     /**
-     * Read the contents of a file
+     * Read the contents of a file.
+     *
+     * Not recommended for large files (higher than a few MB) - use [readFileByChunks] for that
      *
      * This method will fail if a directory path is passed.
      *
@@ -90,6 +97,52 @@ class IONFLSTController(
         } else {
             contentResolverHelper.readFile(resolvedUri.uri, options)
         }
+    }
+
+    /**
+     * Read the contents of a file, in chunks.
+     *
+     * Useful when reading large files that may not fit entirely in memory
+     *
+     * This method will fail if a directory path is passed.
+     *
+     * Example usage:
+     *
+     * ```kotlin
+     * controller.readFileByChunks(path, options)
+     *     .onEach {
+     *         // handle receiving chunks here
+     *     }
+     *     .catch {
+     *         // handle errors here
+     *     }
+     *     .onCompletion {
+     *         // handle file finished read successfully here
+     *     }
+     *     .launchIn(coroutineScope)
+     * ```
+     *
+     * @param uri a [IONFLSTUri] object; will resolve internally to determine the actual file
+     * @param options the options for customizing file reading; see [IONFLSTReadByChunksOptions]
+     */
+    @ExperimentalCoroutinesApi
+    fun readFileByChunks(
+        uri: IONFLSTUri,
+        options: IONFLSTReadByChunksOptions
+    ): Flow<String> = flow {
+        val resolveResult = uriHelper.useUriIfResolvedAsNonDirectory(uri) { Result.success(it) }
+        resolveResult.fold(
+            onSuccess = { resolvedUri ->
+                val readByChunksFlow = when (resolvedUri) {
+                    is IONFLSTUri.Resolved.Local ->
+                        localFilesHelper.readFileByChunks(resolvedUri.fullPath, options)
+
+                    else -> contentResolverHelper.readFileByChunks(resolvedUri.uri, options)
+                }
+                emitAll(readByChunksFlow)
+            },
+            onFailure = { throw it }
+        )
     }
 
     /**
@@ -164,7 +217,7 @@ class IONFLSTController(
      *
      * @param source a [IONFLSTUri] object for the source file/directory to copy from;
      *  will resolve internally to determine the actual path
-     * @param source a [IONFLSTUri] object for the destination file/directory to copy to;
+     * @param destination a [IONFLSTUri] object for the destination file/directory to copy to;
      *  will resolve internally to determine the actual path
      *
      * @return success with the android [Uri] that was copied to, or error otherwise
@@ -206,7 +259,7 @@ class IONFLSTController(
      *
      * @param source a [IONFLSTUri] object for the source file/directory to move;
      *  will resolve internally to determine the actual path
-     * @param source a [IONFLSTUri] object for the destination file/directory to move to;
+     * @param destination a [IONFLSTUri] object for the destination file/directory to move to;
      *  will resolve internally to determine the actual path
      *
      * @return success with the android [Uri] that was copied to, or error otherwise

@@ -6,19 +6,23 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import android.util.Base64
 import io.ionic.libs.ionfilesystemlib.controller.internal.FILE_MIME_TYPE_FALLBACK
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
+import io.ionic.libs.ionfilesystemlib.controller.internal.readByChunks
+import io.ionic.libs.ionfilesystemlib.controller.internal.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.io.InputStreamReader
 
 class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
 
@@ -35,18 +39,34 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             val fileContents: String = contentResolver.openInputStream(uri)?.use { inputStream ->
-                if (options.encoding is IONFLSTEncoding.WithCharset) {
-                    val reader =
-                        InputStreamReader(inputStream, options.encoding.charset)
-                    reader.use { reader.readText() }
-                } else {
-                    val byteArray = inputStream.readBytes()
-                    Base64.encodeToString(byteArray, Base64.NO_WRAP)
-                }
+                inputStream.readFull(options)
             } ?: throw IONFLSTExceptions.UnknownError()
             return@runCatching fileContents
         }.mapError()
     }
+
+    /**
+     * Reads the contents of a file in chunks
+     *
+     * Useful when the file does not fit in entirely memory.
+     *
+     * @param options options for reading the file in chunks; refer to [IONFLSTReadByChunksOptions]
+     * @return a (cold) flow in which the chunks are emitted;
+     * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
+     */
+    fun readFileByChunks(
+        uri: Uri,
+        options: IONFLSTReadByChunksOptions
+    ): Flow<String> = flow {
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            inputStream.readByChunks(
+                options,
+                DEFAULT_BUFFER_SIZE,
+                onChunkRead = { chunk -> emit(chunk) }
+            )
+        } ?: throw IONFLSTExceptions.UnknownError()
+    }.catch { throw it.mapError() }
+        .flowOn(Dispatchers.IO)
 
     /**
      * Gets information about a file using content resolver
@@ -195,10 +215,11 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
     }
 
     private fun <T> Result<T>.mapError(): Result<T> =
-        when (val ex = exceptionOrNull()) {
-            is FileNotFoundException -> Result.failure(IONFLSTExceptions.DoesNotExist())
-            is UnsupportedOperationException -> Result.failure(IONFLSTExceptions.NotAllowed())
-            null -> this
-            else -> Result.failure(ex)
-        }
+        exceptionOrNull()?.let { Result.failure(it.mapError()) } ?: this
+
+    private fun Throwable.mapError(): Throwable = when (this) {
+        is FileNotFoundException -> IONFLSTExceptions.DoesNotExist()
+        is UnsupportedOperationException -> IONFLSTExceptions.UnknownError()
+        else -> this
+    }
 }

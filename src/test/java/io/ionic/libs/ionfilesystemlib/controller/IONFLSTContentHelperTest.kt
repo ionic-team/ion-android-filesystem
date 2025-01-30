@@ -1,9 +1,11 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
 import android.net.Uri
+import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_NAME
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTTestFileContentProvider
+import io.ionic.libs.ionfilesystemlib.common.LOREM_IPSUM_2800_CHARS
 import io.ionic.libs.ionfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
 import io.ionic.libs.ionfilesystemlib.common.TEST_TIMESTAMP
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_CONTENT
@@ -13,6 +15,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -26,6 +29,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.io.File
 import java.util.Base64
+import kotlin.math.ceil
 
 @RunWith(RobolectricTestRunner::class)
 class IONFLSTContentHelperTest {
@@ -85,6 +89,64 @@ class IONFLSTContentHelperTest {
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
         }
     // endregion readFile tests
+
+    // region readFileByChunks tests
+    @Test
+    fun `given file has content, when reading with a very large chunk size, content is emitted once`() =
+        runTest {
+            val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
+
+            sut.readFileByChunks(
+                uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, Int.MAX_VALUE)
+            ).test {
+
+                assertEquals(IMAGE_FILE_CONTENT, awaitItem())
+                awaitComplete()
+            }
+        }
+
+    @Test
+    fun `given large file, when reading in chunks in base64, multiple items are returned and concatenated result is correct`() =
+        runTest {
+            val fileName = "newFile"
+            val data = LOREM_IPSUM_2800_CHARS.repeat(2000)  // > 5 MB of text
+            val chunkSize = DEFAULT_BUFFER_SIZE
+            contentProvider.addToProvider(
+                IONFLSTTestFileContentProvider.TestFileContent(fileName, data, mimeType = null)
+            )
+            val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$fileName")
+            val chunkCount: Int = ceil(data.length.toFloat() / chunkSize).toInt()
+            var result = ""
+
+            sut.readFileByChunks(
+                uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, chunkSize)
+            ).test {
+                for (index in 1..chunkCount) {
+                    val chunk = awaitItem()
+                    result += chunk
+                }
+                awaitComplete()
+            }
+
+            assertEquals(
+                data,
+                String(Base64.getDecoder().decode(result))
+            )
+        }
+
+    @Test
+    fun `given non-existent file, when reading from its content uri in chunks, DoesNotExist error is returned`() =
+        runTest {
+            val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
+
+            sut.readFileByChunks(uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, 1))
+                .test {
+                    val error = awaitError()
+
+                    assertTrue(error is IONFLSTExceptions.DoesNotExist)
+                }
+        }
+    // endregion readFileByChunks tests
 
     // region getFileMetadata tests
     @Test

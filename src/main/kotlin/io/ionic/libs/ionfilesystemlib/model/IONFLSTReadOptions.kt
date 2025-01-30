@@ -1,7 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.model
 
 /**
- * Parameters for creating a file or directory
+ * Parameters for reading a file all at once
  *
  * @param encoding how the file data to return should be encoded; see [IONFLSTEncoding]
  */

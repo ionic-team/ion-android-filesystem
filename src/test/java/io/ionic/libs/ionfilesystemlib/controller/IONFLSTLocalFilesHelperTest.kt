@@ -1,12 +1,15 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
 import android.os.Build
+import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
+import io.ionic.libs.ionfilesystemlib.common.LOREM_IPSUM_2800_CHARS
 import io.ionic.libs.ionfilesystemlib.controller.internal.IONFLSTBuildConfig
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
@@ -160,11 +163,10 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val file = fileInRootDir
             val path = file.absolutePath
             sut.createFile(path, IONFLSTCreateOptions(recursive = false))
-            val data = "Text"
             sut.saveFile(
                 path,
                 IONFLSTSaveOptions(
-                    data,
+                    LOREM_IPSUM_2800_CHARS,
                     IONFLSTEncoding.DefaultCharset,
                     IONFLSTSaveMode.WRITE,
                     false
@@ -176,7 +178,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             )
 
             assertTrue(result.isSuccess)
-            assertEquals("Text", result.getOrNull())
+            assertEquals(LOREM_IPSUM_2800_CHARS, result.getOrNull())
         }
 
     @Test
@@ -408,6 +410,152 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             assertTrue(result.isFailure)
         }
     // endregion save + read file tests
+
+    // region read by chunks tests
+    @Test
+    fun `given empty file exists, when reading in chunks, empty string is emitted`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            sut.createFile(path, IONFLSTCreateOptions(recursive = false))
+
+            sut.readFileByChunks(
+                path,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.Default, Int.MAX_VALUE)
+            ).test {
+
+                val result = awaitItem()
+                assertEquals("", result)
+                awaitComplete()
+            }
+        }
+
+    @Test
+    fun `given non-empty file exists, when reading with large chunk, a single string with all file contents is emitted`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            sut.saveFile(
+                path,
+                IONFLSTSaveOptions(
+                    LOREM_IPSUM_2800_CHARS,
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            )
+
+            sut.readFileByChunks(
+                path,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, Int.MAX_VALUE)
+            ).test {
+
+                val result = awaitItem()
+                assertEquals(LOREM_IPSUM_2800_CHARS, result)
+                awaitComplete()
+            }
+        }
+
+    @Test
+    fun `given non-empty file exists, when reading in chunks, multiple strings are emitted`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            val fileContents = """
+                This is a small file\n
+                Sm4ll chunk s1z3 shou1d b3 us3d!!\r\t
+                damsodnzcxnxknl\\n
+                
+                $path
+            """.trimIndent()
+            sut.saveFile(
+                path,
+                IONFLSTSaveOptions(
+                    fileContents,
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            )
+            val splits = 5
+            val chunkSize = fileContents.length / splits
+            val hasAdditionalChunk =
+                (chunkSize * splits != fileContents.length) && chunkSize % 3 != 0
+            var result = ""
+
+            sut.readFileByChunks(
+                path,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, chunkSize),
+                bufferSize = chunkSize / 2 // to make sure all the chunks are emitted, while reading from file multiple times
+            ).test {
+                val loopStart = if (hasAdditionalChunk) 0 else 1
+                var offset = 0
+                for (splitIndex in loopStart..splits) {
+                    val chunk = awaitItem()
+                    assertEquals(
+                        fileContents.substring(offset, offset + chunk.length),
+                        chunk
+                    )
+                    offset += chunk.length
+                    result += chunk
+                }
+                awaitComplete()
+            }
+
+            assertEquals(fileContents, result)
+        }
+
+    @Test
+    fun `given non-empty file exists, when reading in chunks with Base64, multiple strings are emitted and the final concatenated string can be decoded correctly`() =
+        runTest {
+            val path = fileInRootDir.absolutePath
+            sut.saveFile(
+                path,
+                IONFLSTSaveOptions(
+                    LOREM_IPSUM_2800_CHARS,
+                    IONFLSTEncoding.DefaultCharset,
+                    IONFLSTSaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            )
+            val splits = 10
+            val chunkSize = LOREM_IPSUM_2800_CHARS.length / splits
+            val hasAdditionalChunk =
+                (chunkSize * splits != LOREM_IPSUM_2800_CHARS.length) && chunkSize % 3 != 0
+            var result = ""
+
+            sut.readFileByChunks(
+                path,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, chunkSize),
+                bufferSize = chunkSize / 3 // to make sure all the chunks are emitted, while reading from file multiple times
+            ).test {
+                val loopStart = if (hasAdditionalChunk) 0 else 1
+                for (splitIndex in loopStart..splits) {
+                    val chunk = awaitItem()
+                    if (splitIndex < splits) {
+                        assertEquals(0, Base64.getDecoder().decode(result).size % 3)
+                    }
+                    result += chunk
+                }
+                awaitComplete()
+            }
+
+            assertEquals(LOREM_IPSUM_2800_CHARS, String(Base64.getDecoder().decode(result)))
+        }
+
+    @Test
+    fun `given file does not exist, when read in chunks, DoesNotExist error is returned`() =
+        runTest {
+            val file = fileInRootDir
+            val path = file.absolutePath
+
+            sut.readFileByChunks(
+                path,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.Default, 1)
+            ).test {
+
+                val result = awaitError()
+                assertTrue(result is IONFLSTExceptions.DoesNotExist)
+            }
+        }
+    // endregion read by chunks tests
 
     // region fileMetadata tests
     @Test

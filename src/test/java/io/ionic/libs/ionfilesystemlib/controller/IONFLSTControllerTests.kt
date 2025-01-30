@@ -1,10 +1,12 @@
 package io.ionic.libs.ionfilesystemlib.controller
 
 import android.net.Uri
+import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.IONFLSTController
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_NAME
 import io.ionic.libs.ionfilesystemlib.common.IONFLSTTestFileContentProvider
+import io.ionic.libs.ionfilesystemlib.common.LOREM_IPSUM_2800_CHARS
 import io.ionic.libs.ionfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_NAME
@@ -14,10 +16,12 @@ import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTFolderType
+import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTUri
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,6 +33,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.util.Base64
+import kotlin.math.ceil
 
 /**
  * Tests for the [IONFLSTController]
@@ -36,6 +41,7 @@ import java.util.Base64
  * These tests are not 100% exhaustive of the entire library.
  * That is because most of the logic is covered in IONFLST(...)HelperTest classes
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class IONFLSTControllerTests {
 
@@ -134,6 +140,67 @@ class IONFLSTControllerTests {
                 Base64.getEncoder().encodeToString(IMAGE_FILE_CONTENT.toByteArray()),
                 result.getOrNull()
             )
+        }
+
+    @Test
+    fun `given large local file exists, when reading it by chunks, chunks are emitted and concatenated result is  correct`() =
+        runTest {
+            // save file for it to have contents to be read
+            val uriLocalFile = IONFLSTUri.Unresolved(
+                parentFolder = IONFLSTFolderType.INTERNAL_FILES,
+                "largeFile.txt"
+            )
+            val data = LOREM_IPSUM_2800_CHARS.repeat(4000) // over 10 MB of text
+            sut.saveFile(
+                uriLocalFile,
+                IONFLSTSaveOptions(
+                    data = data,
+                    encoding = IONFLSTEncoding.DefaultCharset,
+                    mode = IONFLSTSaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            ).let { assertTrue(it.isSuccess) }
+            val chunkSize = 256 * 1024
+            val numberOfChunks = ceil(data.length.toFloat() / chunkSize).toInt()
+            var result = ""
+
+            sut.readFileByChunks(
+                uriLocalFile,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, chunkSize)
+            ).test {
+                (1..numberOfChunks).forEach { index ->
+                    val chunk = awaitItem()
+                    if (index < numberOfChunks) {
+                        assertEquals(chunkSize, chunk.length)
+                    }
+                    result += chunk
+                }
+                awaitComplete()
+            }
+
+            assertEquals(data, result)
+        }
+
+    @Test
+    fun `given file in content provider, when reading it with large chunk, file contents emitted in a single item`() =
+        runTest {
+            val uriContentScheme = IONFLSTUri.Unresolved(
+                null,
+                "content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME"
+            )
+
+            sut.readFileByChunks(
+                uriContentScheme,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, Int.MAX_VALUE)
+            ).test {
+                val result = awaitItem()
+
+                assertEquals(
+                    Base64.getEncoder().encodeToString(IMAGE_FILE_CONTENT.toByteArray()),
+                    result
+                )
+                awaitComplete()
+            }
         }
 
     @Test
@@ -388,6 +455,41 @@ class IONFLSTControllerTests {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFLSTExceptions.NotSupportedForDirectory)
+        }
+
+    @Test
+    fun `given directory exists, when trying to read a file in chunks, NotSupportedForDirectory error is returned`() =
+        runTest {
+            val uriLocalDirectory = IONFLSTUri.Unresolved(IONFLSTFolderType.EXTERNAL_CACHE, "dir")
+            sut.createDirectory(uriLocalDirectory, IONFLSTCreateOptions(recursive = true))
+                .let { assertTrue(it.isSuccess) }
+
+            sut.readFileByChunks(
+                uriLocalDirectory,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, 1)
+            ).test {
+                val error = awaitError()
+
+                assertTrue(error is IONFLSTExceptions.NotSupportedForDirectory)
+            }
+        }
+
+    @Test
+    fun `given file does not exist, when we try to read from it in chunks, DoesNotExist error is returned`() =
+        runTest {
+            val uriLocalFile = IONFLSTUri.Unresolved(
+                parentFolder = IONFLSTFolderType.INTERNAL_FILES,
+                "nonExistent"
+            )
+
+            sut.readFileByChunks(
+                uriLocalFile,
+                IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, 8192)
+            ).test {
+                val error = awaitError()
+
+                assertTrue(error is IONFLSTExceptions.DoesNotExist)
+            }
         }
 
     @Test

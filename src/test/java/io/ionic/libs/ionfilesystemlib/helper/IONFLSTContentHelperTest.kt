@@ -160,6 +160,7 @@ class IONFLSTContentHelperTest {
             IONFLSTMetadataResult(
                 fullPath = uri.path ?: "",
                 name = "$TEXT_FILE_NAME.txt",
+                uri = uri,
                 size = TEXT_FILE_CONTENT.length.toLong(),
                 type = IONFLSTFileType.File("application/text"),
                 createdTimestamp = TEST_TIMESTAMP,
@@ -181,6 +182,7 @@ class IONFLSTContentHelperTest {
                 IONFLSTMetadataResult(
                     fullPath = uri.path ?: "",
                     name = "$IMAGE_FILE_NAME.jpeg",
+                    uri = uri,
                     size = IMAGE_FILE_CONTENT.length.toLong(),
                     type = IONFLSTFileType.File("image/jpeg"),
                     createdTimestamp = TEST_TIMESTAMP,

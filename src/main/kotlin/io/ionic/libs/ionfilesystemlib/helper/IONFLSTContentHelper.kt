@@ -92,6 +92,7 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
                     IONFLSTMetadataResult(
                         fullPath = uri.path ?: "",
                         name = name,
+                        uri = uri,
                         size = size,
                         type = IONFLSTFileType.File(mimeType),
                         createdTimestamp = created,

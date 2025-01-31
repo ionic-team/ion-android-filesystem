@@ -1,6 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.helper.internal
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
@@ -89,6 +90,7 @@ internal fun getMetadata(fileObject: File): IONFLSTMetadataResult = IONFLSTMetad
     fullPath = fileObject.absolutePath,
     name = fileObject.name,
     size = fileObject.length(),
+    uri = Uri.fromFile(fileObject),
     type = if (fileObject.isDirectory) {
         IONFLSTFileType.Directory
     } else {

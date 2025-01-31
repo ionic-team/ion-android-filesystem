@@ -1,5 +1,6 @@
 package io.ionic.libs.ionfilesystemlib.common
 
+import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import io.ionic.libs.ionfilesystemlib.helper.internal.IONFLSTBuildConfig
@@ -61,6 +62,9 @@ abstract class IONFLSTBaseJUnitTest {
             Base64.getDecoder().decode(args.first() as ByteArray)
         }
 
+        mockkStatic(Uri::class)
+        every { Uri.fromFile(any()) } returns mockk()
+
         mockkObject(IONFLSTBuildConfig)
         every { IONFLSTBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.VANILLA_ICE_CREAM
         mockkStatic(MimeTypeMap::class)
@@ -73,6 +77,7 @@ abstract class IONFLSTBaseJUnitTest {
     fun tearDown() {
         unmockkStatic(MimeTypeMap::class)
         unmockkObject(IONFLSTBuildConfig)
+        unmockkStatic(Uri::class)
         unmockkStatic(android.util.Base64::class)
         testRootDirectory.deleteRecursively()
         additionalTearDowns()

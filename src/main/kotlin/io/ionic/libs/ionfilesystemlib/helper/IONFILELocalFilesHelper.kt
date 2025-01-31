@@ -2,12 +2,12 @@ package io.ionic.libs.ionfilesystemlib.helper
 
 import android.util.Base64
 import androidx.annotation.VisibleForTesting
-import io.ionic.libs.ionfilesystemlib.helper.internal.createDirOrFile
-import io.ionic.libs.ionfilesystemlib.helper.internal.deleteDirOrFile
-import io.ionic.libs.ionfilesystemlib.helper.internal.getMetadata
-import io.ionic.libs.ionfilesystemlib.helper.internal.prepareForCopyOrRename
-import io.ionic.libs.ionfilesystemlib.helper.internal.readByChunks
-import io.ionic.libs.ionfilesystemlib.helper.internal.readFull
+import io.ionic.libs.ionfilesystemlib.helper.common.createDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.common.deleteDirOrFile
+import io.ionic.libs.ionfilesystemlib.helper.common.getMetadata
+import io.ionic.libs.ionfilesystemlib.helper.common.prepareForCopyOrRename
+import io.ionic.libs.ionfilesystemlib.helper.common.readByChunks
+import io.ionic.libs.ionfilesystemlib.helper.common.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
@@ -29,7 +29,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
-class IONFILELocalFilesHelper {
+internal class IONFILELocalFilesHelper {
 
     /**
      * Reads contents of a file

@@ -16,7 +16,7 @@ private const val CONTENT_SCHEME = "$CONTENT_SCHEME_NAME://"
 private const val SYNTHETIC_URI_PREFIX = "/synthetic/"
 private const val FILE_SCHEME_NAME = "file"
 
-class IONFILEUriHelper(context: Context) {
+internal class IONFILEUriHelper(context: Context) {
 
     private val internalCacheDir = context.cacheDir
     private val internalFilesDir = context.filesDir

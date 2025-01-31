@@ -1,4 +1,4 @@
-package io.ionic.libs.ionfilesystemlib.helper.internal
+package io.ionic.libs.ionfilesystemlib.helper.common
 
 import io.ionic.libs.ionfilesystemlib.helper.IONFILEUriHelper
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions

@@ -4,13 +4,13 @@ import android.content.Context
 import android.net.Uri
 import io.ionic.libs.ionfilesystemlib.helper.IONFILEContentHelper
 import io.ionic.libs.ionfilesystemlib.helper.IONFILEDirectoriesHelper
-import io.ionic.libs.ionfilesystemlib.helper.IONFILEUriHelper
 import io.ionic.libs.ionfilesystemlib.helper.IONFILELocalFilesHelper
-import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolved
-import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocal
-import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocalDirectory
-import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsLocalFile
-import io.ionic.libs.ionfilesystemlib.helper.internal.useUriIfResolvedAsNonDirectory
+import io.ionic.libs.ionfilesystemlib.helper.IONFILEUriHelper
+import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolved
+import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocal
+import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocalDirectory
+import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocalFile
+import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsNonDirectory
 import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
@@ -33,13 +33,19 @@ import kotlinx.coroutines.flow.flow
  * Usage: Just initialize the controller passing an Android [Context]
  * `val controller = IONFILEController(context)`
  */
-class IONFILEController(
-    context: Context,
-    private val uriHelper: IONFILEUriHelper = IONFILEUriHelper(context),
-    private val localFilesHelper: IONFILELocalFilesHelper = IONFILELocalFilesHelper(),
-    private val directoriesHelper: IONFILEDirectoriesHelper = IONFILEDirectoriesHelper(),
-    private val contentResolverHelper: IONFILEContentHelper = IONFILEContentHelper(context.contentResolver)
+class IONFILEController internal constructor(
+    private val uriHelper: IONFILEUriHelper,
+    private val localFilesHelper: IONFILELocalFilesHelper,
+    private val directoriesHelper: IONFILEDirectoriesHelper,
+    private val contentResolverHelper: IONFILEContentHelper
 ) {
+
+    constructor(context: Context) : this(
+        uriHelper = IONFILEUriHelper(context),
+        localFilesHelper = IONFILELocalFilesHelper(),
+        directoriesHelper = IONFILEDirectoriesHelper(),
+        contentResolverHelper = IONFILEContentHelper(context.contentResolver)
+    )
 
     /**
      * Resolve a uri for a file (or directory) and return it

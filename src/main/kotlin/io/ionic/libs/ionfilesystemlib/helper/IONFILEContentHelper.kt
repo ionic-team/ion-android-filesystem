@@ -6,9 +6,9 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import io.ionic.libs.ionfilesystemlib.helper.internal.FILE_MIME_TYPE_FALLBACK
-import io.ionic.libs.ionfilesystemlib.helper.internal.readByChunks
-import io.ionic.libs.ionfilesystemlib.helper.internal.readFull
+import io.ionic.libs.ionfilesystemlib.helper.common.FILE_MIME_TYPE_FALLBACK
+import io.ionic.libs.ionfilesystemlib.helper.common.readByChunks
+import io.ionic.libs.ionfilesystemlib.helper.common.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
@@ -24,7 +24,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
-class IONFILEContentHelper(private val contentResolver: ContentResolver) {
+internal class IONFILEContentHelper(private val contentResolver: ContentResolver) {
 
     /**
      * Reads contents of a file using content resolver

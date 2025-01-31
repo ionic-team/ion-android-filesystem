@@ -476,8 +476,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             )
             val splits = 5
             val chunkSize = fileContents.length / splits
-            val hasAdditionalChunk =
-                (chunkSize * splits != fileContents.length) && chunkSize % 3 != 0
+            val hasAdditionalChunk = (chunkSize * splits < fileContents.length)
             var result = ""
 
             sut.readFileByChunks(
@@ -518,7 +517,7 @@ class IONFLSTLocalFilesHelperTest : IONFLSTBaseJUnitTest() {
             val splits = 10
             val chunkSize = LOREM_IPSUM_2800_CHARS.length / splits
             val hasAdditionalChunk =
-                (chunkSize * splits != LOREM_IPSUM_2800_CHARS.length) && chunkSize % 3 != 0
+                (((chunkSize / 3 * 3) + 3) * splits < LOREM_IPSUM_2800_CHARS.length)
             var result = ""
 
             sut.readFileByChunks(

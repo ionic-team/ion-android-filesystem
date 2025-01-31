@@ -43,9 +43,9 @@ internal suspend fun InputStream.readByChunks(
         .coerceAtLeast(bufferSize)
         .let {
             if (options.encoding == IONFLSTEncoding.Base64) {
-                // make chunk size a multiple of 3 to not add padding to the end
+                // make chunk size the nearest highest multiple of 3, to not add padding to the end
                 //  this is so that multiple chunks can be concatenated and decoded correctly
-                (it / 3) * 3
+                it - (it % 3) + 3
             } else {
                 it
             }

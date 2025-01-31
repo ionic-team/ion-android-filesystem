@@ -110,7 +110,7 @@ class IONFLSTContentHelperTest {
         runTest {
             val fileName = "newFile"
             val data = LOREM_IPSUM_2800_CHARS.repeat(2000)  // > 5 MB of text
-            val chunkSize = DEFAULT_BUFFER_SIZE
+            val chunkSize = 50000
             contentProvider.addToProvider(
                 IONFLSTTestFileContentProvider.TestFileContent(fileName, data, mimeType = null)
             )

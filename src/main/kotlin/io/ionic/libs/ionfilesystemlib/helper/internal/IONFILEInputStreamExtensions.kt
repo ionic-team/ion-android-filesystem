@@ -1,9 +1,9 @@
 package io.ionic.libs.ionfilesystemlib.helper.internal
 
 import android.util.Base64
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -15,8 +15,8 @@ import java.io.InputStreamReader
  * @param options the options for configuring how to read from the stream
  * @return the full contents of the stream
  */
-internal fun InputStream.readFull(options: IONFLSTReadOptions): String =
-    if (options.encoding is IONFLSTEncoding.WithCharset) {
+internal fun InputStream.readFull(options: IONFILEReadOptions): String =
+    if (options.encoding is IONFILEEncoding.WithCharset) {
         val reader =
             InputStreamReader(this, options.encoding.charset)
         reader.use { reader.readText() }
@@ -31,18 +31,18 @@ internal fun InputStream.readFull(options: IONFLSTReadOptions): String =
  * @param options for reading from the stream, including the chunk size to return
  * @param bufferSize the size of the buffer for reading from the stream.
  *  This is different from the chunk size, and should be a value that aligns with the OS page size
- *  The buffer size may alter the chunkSize value to be used; refer to [IONFLSTReadByChunksOptions]
+ *  The buffer size may alter the chunkSize value to be used; refer to [IONFILEReadByChunksOptions]
  * @param onChunkRead suspend function in which to return each chunk that was read
  */
 internal suspend fun InputStream.readByChunks(
-    options: IONFLSTReadByChunksOptions,
+    options: IONFILEReadByChunksOptions,
     bufferSize: Int,
     onChunkRead: suspend (String) -> Unit,
 ) = withContext(Dispatchers.IO) {
     val chunkSize = minOf(options.chunkSize, available())
         .coerceAtLeast(bufferSize)
         .let {
-            if (options.encoding == IONFLSTEncoding.Base64) {
+            if (options.encoding == IONFILEEncoding.Base64) {
                 // make chunk size the nearest highest multiple of 3, to not add padding to the end
                 //  this is so that multiple chunks can be concatenated and decoded correctly
                 it - (it % 3) + 3
@@ -57,7 +57,7 @@ internal suspend fun InputStream.readByChunks(
         bytesRead = readChunk(byteArray, bufferSize)
         if (bytesRead > 0) {
             val byteArrayToConvert = byteArray.take(bytesRead).toByteArray()
-            val readChunk = if (options.encoding is IONFLSTEncoding.WithCharset) {
+            val readChunk = if (options.encoding is IONFILEEncoding.WithCharset) {
                 byteArrayToConvert.toString(options.encoding.charset)
             } else {
                 Base64.encodeToString(byteArrayToConvert, Base64.NO_WRAP)

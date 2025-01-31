@@ -4,15 +4,15 @@ import io.ionic.libs.ionfilesystemlib.helper.internal.createDirOrFile
 import io.ionic.libs.ionfilesystemlib.helper.internal.deleteDirOrFile
 import io.ionic.libs.ionfilesystemlib.helper.internal.getMetadata
 import io.ionic.libs.ionfilesystemlib.helper.internal.prepareForCopyOrRename
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class IONFLSTDirectoriesHelper {
+class IONFILEDirectoriesHelper {
 
     /**
      * List the contents of a directory
@@ -20,12 +20,12 @@ class IONFLSTDirectoriesHelper {
      * @param fullPath full path to the directory
      * @return success with list of metadata information for each file / sub-directory, error otherwise
      */
-    suspend fun listDirectory(fullPath: String): Result<List<IONFLSTMetadataResult>> =
+    suspend fun listDirectory(fullPath: String): Result<List<IONFILEMetadataResult>> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val file = File(fullPath)
                 if (!file.exists()) {
-                    throw IONFLSTExceptions.DoesNotExist()
+                    throw IONFILEExceptions.DoesNotExist()
                 }
                 val directoryEntries = file.listFiles()?.toList() ?: emptyList()
                 directoryEntries.filterNotNull().map { getMetadata(it) }
@@ -41,7 +41,7 @@ class IONFLSTDirectoriesHelper {
      */
     suspend fun createDirectory(
         fullPath: String,
-        options: IONFLSTCreateOptions
+        options: IONFILECreateOptions
     ): Result<Unit> = withContext(Dispatchers.IO) {
         createDirOrFile(fullPath, options, isDirectory = true)
     }
@@ -53,7 +53,7 @@ class IONFLSTDirectoriesHelper {
      * @param options options to delete the directory
      * @return success if the directory was deleted successfully, error otherwise
      */
-    suspend fun deleteDirectory(fullPath: String, options: IONFLSTDeleteOptions): Result<Unit> =
+    suspend fun deleteDirectory(fullPath: String, options: IONFILEDeleteOptions): Result<Unit> =
         withContext(Dispatchers.IO) { deleteDirOrFile(fullPath, options) }
 
     /**
@@ -74,7 +74,7 @@ class IONFLSTDirectoriesHelper {
                 val copySuccess =
                     sourceFileObj.copyRecursively(destinationFileObj, overwrite = false)
                 if (!copySuccess) {
-                    throw IONFLSTExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
                 }
             }
         }
@@ -97,7 +97,7 @@ class IONFLSTDirectoriesHelper {
             ) { sourceFileObj: File, destinationFileObj: File ->
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
-                    throw IONFLSTExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
                 }
             }
         }

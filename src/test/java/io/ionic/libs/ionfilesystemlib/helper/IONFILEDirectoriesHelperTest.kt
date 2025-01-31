@@ -1,14 +1,14 @@
 package io.ionic.libs.ionfilesystemlib.helper
 
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTBaseJUnitTest
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveMode
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTSaveOptions
+import io.ionic.libs.ionfilesystemlib.common.IONFILEBaseJUnitTest
+import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFILESaveMode
+import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,11 +17,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
-class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
-    private lateinit var sut: IONFLSTDirectoriesHelper
+class IONFILEDirectoriesHelperTest : IONFILEBaseJUnitTest() {
+    private lateinit var sut: IONFILEDirectoriesHelper
 
     override fun additionalSetups() {
-        sut = IONFLSTDirectoriesHelper()
+        sut = IONFILEDirectoriesHelper()
     }
 
     // region createDirectory tests
@@ -31,7 +31,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInRootDir
             val path = dir.absolutePath
 
-            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
+            val result = sut.createDirectory(path, IONFILECreateOptions(recursive = false))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -44,7 +44,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val path = dir.absolutePath
 
-            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = true))
+            val result = sut.createDirectory(path, IONFILECreateOptions(recursive = true))
 
             assertTrue(result.isSuccess)
             assertTrue(dir.exists())
@@ -57,10 +57,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val path = dir.absolutePath
 
-            val result = sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
+            val result = sut.createDirectory(path, IONFILECreateOptions(recursive = false))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.NoParentDirectory)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CreateFailed.NoParentDirectory)
             assertFalse(dir.exists())
         }
 
@@ -71,10 +71,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val path = existingDir.absolutePath
 
             val result =
-                sut.createDirectory(path, IONFLSTCreateOptions(recursive = true))
+                sut.createDirectory(path, IONFILECreateOptions(recursive = true))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CreateFailed.AlreadyExists)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CreateFailed.AlreadyExists)
             assertTrue(existingDir.exists())
         }
     // endregion createDirectory tests
@@ -87,7 +87,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val result = sut.listDirectory(path)
 
         assertTrue(result.isSuccess)
-        assertEquals(emptyList<IONFLSTMetadataResult>(), result.getOrNull())
+        assertEquals(emptyList<IONFILEMetadataResult>(), result.getOrNull())
     }
 
     @Test
@@ -95,12 +95,12 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val path = testRootDirectory.absolutePath
             val data = "Text"
-            IONFLSTLocalFilesHelper().saveFile(
+            IONFILELocalFilesHelper().saveFile(
                 fileInRootDir.absolutePath,
-                IONFLSTSaveOptions(
+                IONFILESaveOptions(
                     data,
-                    IONFLSTEncoding.DefaultCharset,
-                    IONFLSTSaveMode.WRITE,
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
                     createFileRecursive = true
                 )
             )
@@ -110,7 +110,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             assertTrue(result.isSuccess)
             result.getOrNull()!!.let {
                 assertEquals(1, it.size)
-                assertTrue(it.first().type is IONFLSTFileType.File)
+                assertTrue(it.first().type is IONFILEFileType.File)
                 assertEquals(data.length.toLong(), it.first().size)
             }
         }
@@ -119,7 +119,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given directory has a sub-directory, when listing directory, a one-item list with the directory metadata is returned`() =
         runTest {
             val path = testRootDirectory.absolutePath
-            sut.createDirectory(dirInRootDir.absolutePath, IONFLSTCreateOptions(recursive = false))
+            sut.createDirectory(dirInRootDir.absolutePath, IONFILECreateOptions(recursive = false))
 
             val result = sut.listDirectory(path)
 
@@ -127,7 +127,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             result.getOrNull()!!.let {
                 assertEquals(1, it.size)
                 assertEquals(DIR_NAME, it.first().name)
-                assertTrue(it.first().type is IONFLSTFileType.Directory)
+                assertTrue(it.first().type is IONFILEFileType.Directory)
             }
         }
 
@@ -135,13 +135,13 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
     fun `given directory several nested directories, when listing directory, a list with the directories metadata is returned`() =
         runTest {
             val path = testRootDirectory.absolutePath
-            sut.createDirectory(dirInSubDir.absolutePath, IONFLSTCreateOptions(recursive = true))
-            IONFLSTLocalFilesHelper().saveFile(
+            sut.createDirectory(dirInSubDir.absolutePath, IONFILECreateOptions(recursive = true))
+            IONFILELocalFilesHelper().saveFile(
                 fileInSubDir.absolutePath,
-                IONFLSTSaveOptions(
+                IONFILESaveOptions(
                     "File",
-                    IONFLSTEncoding.DefaultCharset,
-                    IONFLSTSaveMode.WRITE,
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
                     createFileRecursive = true
                 )
             )
@@ -151,7 +151,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             assertTrue(result.isSuccess)
             result.getOrNull()!!.let {
                 assertEquals(2, it.size)
-                assertTrue(it.all { item -> item.type is IONFLSTFileType.Directory })
+                assertTrue(it.all { item -> item.type is IONFILEFileType.Directory })
             }
         }
 
@@ -163,7 +163,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val result = sut.listDirectory(path)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
     // endregion listDirectory tests
 
@@ -173,9 +173,9 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val dir = dirInRootDir
             val path = dir.absolutePath
-            sut.createDirectory(path, IONFLSTCreateOptions(recursive = false))
+            sut.createDirectory(path, IONFILECreateOptions(recursive = false))
 
-            val result = sut.deleteDirectory(path, IONFLSTDeleteOptions(recursive = false))
+            val result = sut.deleteDirectory(path, IONFILEDeleteOptions(recursive = false))
 
             assertTrue(result.isSuccess)
             assertFalse(dir.exists())
@@ -187,10 +187,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true))
+            sut.createDirectory(dirPath, IONFILECreateOptions(recursive = true))
 
             val result =
-                sut.deleteDirectory(dirToDelete.absolutePath, IONFLSTDeleteOptions(true))
+                sut.deleteDirectory(dirToDelete.absolutePath, IONFILEDeleteOptions(true))
 
             assertTrue(result.isSuccess)
             assertFalse(dirToDelete.exists() && dir.exists())
@@ -202,12 +202,12 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInSubDir
             val dirPath = dir.absolutePath
             val dirToDelete = dir.parentFile!!
-            sut.createDirectory(dirPath, IONFLSTCreateOptions(recursive = true))
+            sut.createDirectory(dirPath, IONFILECreateOptions(recursive = true))
 
-            val result = sut.deleteDirectory(dirToDelete.absolutePath, IONFLSTDeleteOptions(false))
+            val result = sut.deleteDirectory(dirToDelete.absolutePath, IONFILEDeleteOptions(false))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DeleteFailed.CannotDeleteChildren)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DeleteFailed.CannotDeleteChildren)
             assertTrue(dirToDelete.exists() && dir.exists())
         }
 
@@ -217,10 +217,10 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val dir = dirInRootDir
             val path = dir.absolutePath
 
-            val result = sut.deleteDirectory(path, IONFLSTDeleteOptions(recursive = true))
+            val result = sut.deleteDirectory(path, IONFILEDeleteOptions(recursive = true))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
     // endregion deleteDirectory tests
 
@@ -231,7 +231,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val sourcePath = sourceDir.absolutePath
         val destinationDir = dirInRootDir
         val destinationPath = destinationDir.absolutePath
-        sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
+        sut.createDirectory(sourcePath, IONFILECreateOptions(recursive = true))
 
         val result = sut.copyDirectory(sourcePath, destinationPath)
 
@@ -246,29 +246,29 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val sourcePath = sourceDir.absolutePath
         val destinationDir = dirInRootDir
         val destinationPath = destinationDir.absolutePath
-        IONFLSTLocalFilesHelper().apply {
+        IONFILELocalFilesHelper().apply {
             saveFile(
                 File(sourceDir, "file1.txt").absolutePath,
-                IONFLSTSaveOptions(
+                IONFILESaveOptions(
                     "data \nfile 1.",
-                    IONFLSTEncoding.DefaultCharset,
-                    IONFLSTSaveMode.WRITE,
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
                     true
                 )
             )
             saveFile(
                 File(sourceDir, "file2.txt").absolutePath,
-                IONFLSTSaveOptions(
+                IONFILESaveOptions(
                     "text for file #2.",
-                    IONFLSTEncoding.DefaultCharset,
-                    IONFLSTSaveMode.WRITE,
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
                     false
                 )
             )
         }
         sut.createDirectory(
             File(sourceDir, "childDirectory").absolutePath,
-            IONFLSTCreateOptions(recursive = true)
+            IONFILECreateOptions(recursive = true)
         )
 
         val result = sut.copyDirectory(sourcePath, destinationPath)
@@ -299,7 +299,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val result = sut.copyDirectory(sourcePath, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
 
     @Test
@@ -310,12 +310,12 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
                 it.createNewFile()
                 it.absolutePath
             }
-            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
+            sut.createDirectory(sourcePath, IONFILECreateOptions(recursive = true))
 
             val result = sut.copyDirectory(sourcePath, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories)
         }
     // endregion copyDirectory tests
 
@@ -328,7 +328,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         val destinationPath = destinationDir.absolutePath
         sut.createDirectory(
             File(sourceDir, "childDirectory").absolutePath,
-            IONFLSTCreateOptions(recursive = true)
+            IONFILECreateOptions(recursive = true)
         )
         File(sourceDir, "doc.pdf").createNewFile()
         File(sourceDir, "vid.mkv").createNewFile()
@@ -360,12 +360,12 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = dirInRootDir.absolutePath
             val destinationPath = dirInSubDir.absolutePath // sub-directories not created
-            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
+            sut.createDirectory(sourcePath, IONFILECreateOptions(recursive = true))
 
             val result = sut.moveDirectory(sourcePath, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.NoParentDirectory)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.NoParentDirectory)
         }
 
     @Test
@@ -380,7 +380,7 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
             val result = sut.moveDirectory(sourcePath, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories)
         }
 
     @Test
@@ -388,12 +388,12 @@ class IONFLSTDirectoriesHelperTest : IONFLSTBaseJUnitTest() {
         runTest {
             val sourcePath = dirInRootDir.absolutePath
             val destinationPath = testRootDirectory.absolutePath
-            sut.createDirectory(sourcePath, IONFLSTCreateOptions(recursive = true))
+            sut.createDirectory(sourcePath, IONFILECreateOptions(recursive = true))
 
             val result = sut.moveDirectory(sourcePath, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.DestinationDirectoryExists)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.DestinationDirectoryExists)
         }
     // endregion moveDirectory tests
 }

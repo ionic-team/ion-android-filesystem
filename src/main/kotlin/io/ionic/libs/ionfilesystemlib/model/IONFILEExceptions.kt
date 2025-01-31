@@ -1,36 +1,36 @@
 package io.ionic.libs.ionfilesystemlib.model
 
-sealed class IONFLSTExceptions(message: String) : Exception(message) {
+sealed class IONFILEExceptions(message: String) : Exception(message) {
     class UnresolvableUri(uri: String) :
-        IONFLSTExceptions("Unable to resolve the provided uri=$uri")
+        IONFILEExceptions("Unable to resolve the provided uri=$uri")
 
-    sealed class CreateFailed(message: String) : IONFLSTExceptions(message) {
+    sealed class CreateFailed(message: String) : IONFILEExceptions(message) {
         class Unknown : CreateFailed("Failed to create file/directory due to unknown reason")
         class AlreadyExists : CreateFailed("The file/directory already exists")
         class NoParentDirectory :
             CreateFailed("Received recursive=false but missing parent directories")
     }
 
-    sealed class DeleteFailed(message: String) : IONFLSTExceptions(message) {
+    sealed class DeleteFailed(message: String) : IONFILEExceptions(message) {
         class Unknown : DeleteFailed("Failed to delete file/directory due to unknown reason")
         class CannotDeleteChildren :
             DeleteFailed("Received recursive=false but directory is not-empty")
     }
 
-    class DoesNotExist : IONFLSTExceptions("The file/directory does not exist")
+    class DoesNotExist : IONFILEExceptions("The file/directory does not exist")
 
-    class UnknownError : IONFLSTExceptions("An unknown error occurred.")
+    class UnknownError : IONFILEExceptions("An unknown error occurred.")
 
     class NotSupportedForContentScheme :
-        IONFLSTExceptions("The requested operation is not supported on a content:// uri")
+        IONFILEExceptions("The requested operation is not supported on a content:// uri")
 
     class NotSupportedForDirectory :
-        IONFLSTExceptions("The request operation is not supported on a directory")
+        IONFILEExceptions("The request operation is not supported on a directory")
 
     class NotSupportedForFiles :
-        IONFLSTExceptions("The request operation is not supported on files, only directories")
+        IONFILEExceptions("The request operation is not supported on files, only directories")
 
-    sealed class CopyRenameFailed(message: String) : IONFLSTExceptions(message) {
+    sealed class CopyRenameFailed(message: String) : IONFILEExceptions(message) {
         class Unknown :
             CopyRenameFailed("Failed to copy/rename the file/directory due to unknown reason")
 

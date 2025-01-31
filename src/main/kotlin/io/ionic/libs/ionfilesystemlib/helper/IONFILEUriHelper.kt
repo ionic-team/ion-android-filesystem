@@ -4,9 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import io.ionic.libs.ionfilesystemlib.model.LocalUriType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTFolderType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTUri
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEFolderType
+import io.ionic.libs.ionfilesystemlib.model.IONFILEUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -16,7 +16,7 @@ private const val CONTENT_SCHEME = "$CONTENT_SCHEME_NAME://"
 private const val SYNTHETIC_URI_PREFIX = "/synthetic/"
 private const val FILE_SCHEME_NAME = "file"
 
-class IONFLSTFUriHelper(context: Context) {
+class IONFILEUriHelper(context: Context) {
 
     private val internalCacheDir = context.cacheDir
     private val internalFilesDir = context.filesDir
@@ -28,12 +28,12 @@ class IONFLSTFUriHelper(context: Context) {
      *
      * Identifies the URI as belonging to a local file, or a file with content:// scheme
      *
-     * @param unresolvedUri the URI to resolve; see [IONFLSTUri.Unresolved]
-     * @return success with the resolved URI [IONFLSTUri.Resolved], or error otherwise
+     * @param unresolvedUri the URI to resolve; see [IONFILEUri.Unresolved]
+     * @return success with the resolved URI [IONFILEUri.Resolved], or error otherwise
      */
     suspend fun resolveUri(
-        unresolvedUri: IONFLSTUri.Unresolved
-    ): Result<IONFLSTUri.Resolved> = runCatching {
+        unresolvedUri: IONFILEUri.Unresolved
+    ): Result<IONFILEUri.Resolved> = runCatching {
         val parentFolderObject = unresolvedUri.parentFolder.getFolderFileObject()
         val resolvedUri = if (parentFolderObject == null) {
             val parsedUri = Uri.parse(unresolvedUri.uriPath)
@@ -53,7 +53,7 @@ class IONFLSTFUriHelper(context: Context) {
                     unresolvedUri.uriPath
                 )
 
-                else -> throw IONFLSTExceptions.UnresolvableUri(unresolvedUri.uriPath)
+                else -> throw IONFILEExceptions.UnresolvableUri(unresolvedUri.uriPath)
             }
         } else {
             resolveAsLocalFile(parentFolderObject, unresolvedUri.uriPath)
@@ -65,10 +65,10 @@ class IONFLSTFUriHelper(context: Context) {
      * Resolves as a content:// URI
      *
      * @param uri the content:// URI
-     * @return a [IONFLSTUri.Resolved.Content] object
+     * @return a [IONFILEUri.Resolved.Content] object
      */
-    private fun resolveAsContentUri(uri: Uri): IONFLSTUri.Resolved.Content {
-        return IONFLSTUri.Resolved.Content(uri)
+    private fun resolveAsContentUri(uri: Uri): IONFILEUri.Resolved.Content {
+        return IONFILEUri.Resolved.Content(uri)
     }
 
     /**
@@ -76,19 +76,19 @@ class IONFLSTFUriHelper(context: Context) {
      *
      * @param parentFolderFileObject the parent folder of the file, or null if there is none
      * @param localPath the local path to the file (minus the parent folder path)
-     * @return a [IONFLSTUri.Resolved.Local] object
+     * @return a [IONFILEUri.Resolved.Local] object
      */
     private suspend fun resolveAsLocalFile(
         parentFolderFileObject: File?,
         localPath: String
-    ): IONFLSTUri.Resolved.Local = withContext(Dispatchers.IO) {
+    ): IONFILEUri.Resolved.Local = withContext(Dispatchers.IO) {
         val localFileObject = if (parentFolderFileObject != null) {
             File(parentFolderFileObject, localPath)
         } else {
             File(localPath)
         }
         val fileUri = Uri.fromFile(localFileObject)
-        return@withContext IONFLSTUri.Resolved.Local(
+        return@withContext IONFILEUri.Resolved.Local(
             fullPath = localFileObject.path,
             uri = fileUri,
             type = try {
@@ -120,7 +120,7 @@ class IONFLSTFUriHelper(context: Context) {
         val extensionIndex = path.lastIndexOf('.')
         if (extensionIndex < syntheticPathEndIndex) {
             // the path has no extension, meaning it cannot really be a file mapped to content:// scheme
-            throw IONFLSTExceptions.UnresolvableUri(path)
+            throw IONFILEExceptions.UnresolvableUri(path)
         }
         val location = path.substring(syntheticPathEndIndex, extensionIndex)
         val contentUriPrefix: String = CONTENT_SCHEME + "media/"
@@ -128,18 +128,18 @@ class IONFLSTFUriHelper(context: Context) {
     }
 
     /**
-     * Get the full folder object from [IONFLSTFolderType] enum
+     * Get the full folder object from [IONFILEFolderType] enum
      *
      * @return file object for a folder, or null if none was provided.
      */
-    private fun IONFLSTFolderType?.getFolderFileObject(): File? =
+    private fun IONFILEFolderType?.getFolderFileObject(): File? =
         when (this) {
-            IONFLSTFolderType.INTERNAL_CACHE -> internalCacheDir
-            IONFLSTFolderType.INTERNAL_FILES -> internalFilesDir
-            IONFLSTFolderType.EXTERNAL_CACHE -> externalCacheDir
-            IONFLSTFolderType.EXTERNAL_FILES -> externalFilesDir
-            IONFLSTFolderType.EXTERNAL_STORAGE -> Environment.getExternalStorageDirectory()
-            IONFLSTFolderType.DOCUMENTS -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            IONFILEFolderType.INTERNAL_CACHE -> internalCacheDir
+            IONFILEFolderType.INTERNAL_FILES -> internalFilesDir
+            IONFILEFolderType.EXTERNAL_CACHE -> externalCacheDir
+            IONFILEFolderType.EXTERNAL_FILES -> externalFilesDir
+            IONFILEFolderType.EXTERNAL_STORAGE -> Environment.getExternalStorageDirectory()
+            IONFILEFolderType.DOCUMENTS -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             null -> null
         }
 }

@@ -9,11 +9,11 @@ import android.provider.OpenableColumns
 import io.ionic.libs.ionfilesystemlib.helper.internal.FILE_MIME_TYPE_FALLBACK
 import io.ionic.libs.ionfilesystemlib.helper.internal.readByChunks
 import io.ionic.libs.ionfilesystemlib.helper.internal.readFull
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -24,7 +24,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
-class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
+class IONFILEContentHelper(private val contentResolver: ContentResolver) {
 
     /**
      * Reads contents of a file using content resolver
@@ -35,12 +35,12 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
      */
     suspend fun readFile(
         uri: Uri,
-        options: IONFLSTReadOptions
+        options: IONFILEReadOptions
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             val fileContents: String = contentResolver.openInputStream(uri)?.use { inputStream ->
                 inputStream.readFull(options)
-            } ?: throw IONFLSTExceptions.UnknownError()
+            } ?: throw IONFILEExceptions.UnknownError()
             return@runCatching fileContents
         }.mapError()
     }
@@ -50,13 +50,13 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
      *
      * Useful when the file does not fit in entirely memory.
      *
-     * @param options options for reading the file in chunks; refer to [IONFLSTReadByChunksOptions]
+     * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
      * @return a (cold) flow in which the chunks are emitted;
      * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
      */
     fun readFileByChunks(
         uri: Uri,
-        options: IONFLSTReadByChunksOptions
+        options: IONFILEReadByChunksOptions
     ): Flow<String> = flow {
         contentResolver.openInputStream(uri)?.use { inputStream ->
             inputStream.readByChunks(
@@ -64,7 +64,7 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
                 DEFAULT_BUFFER_SIZE,
                 onChunkRead = { chunk -> emit(chunk) }
             )
-        } ?: throw IONFLSTExceptions.UnknownError()
+        } ?: throw IONFILEExceptions.UnknownError()
     }.catch { throw it.mapError() }
         .flowOn(Dispatchers.IO)
 
@@ -74,14 +74,14 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
      * @param uri the content uri to get the metadata from
      * @return success with result containing relevant file information, error otherwise
      */
-    suspend fun getFileMetadata(uri: Uri): Result<IONFLSTMetadataResult> =
+    suspend fun getFileMetadata(uri: Uri): Result<IONFILEMetadataResult> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val cursor = contentResolver.query(uri, null, null, null, null)
-                    ?: throw IONFLSTExceptions.UnknownError()
+                    ?: throw IONFILEExceptions.UnknownError()
                 cursor.use {
                     if (!cursor.moveToFirst()) {
-                        throw IONFLSTExceptions.DoesNotExist()
+                        throw IONFILEExceptions.DoesNotExist()
                     }
                     contentResolver.persistedUriPermissions
                     val name = getNameForContentUri(cursor)
@@ -89,12 +89,12 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
                     val lastModified: Long = getLastModifiedTimestampForContentUri(cursor)
                     val created: Long = getCreatedTimestampForContentUri(cursor)
                     val mimeType = contentResolver.getType(uri) ?: FILE_MIME_TYPE_FALLBACK
-                    IONFLSTMetadataResult(
+                    IONFILEMetadataResult(
                         fullPath = uri.path ?: "",
                         name = name,
                         uri = uri,
                         size = size,
-                        type = IONFLSTFileType.File(mimeType),
+                        type = IONFILEFileType.File(mimeType),
                         createdTimestamp = created,
                         lastModifiedTimestamp = lastModified
                     )
@@ -114,7 +114,7 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
             if (rowsDeleted > 0) {
                 Unit
             } else {
-                throw IONFLSTExceptions.DeleteFailed.Unknown()
+                throw IONFILEExceptions.DeleteFailed.Unknown()
             }
         }.mapError()
     }
@@ -136,17 +136,17 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
         runCatching {
             val destinationFileObj = File(destinationPath)
             when {
-                destinationFileObj.isDirectory -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
-                destinationFileObj.parentFile?.exists() == false -> throw IONFLSTExceptions.CopyRenameFailed.NoParentDirectory()
+                destinationFileObj.isDirectory -> throw IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+                destinationFileObj.parentFile?.exists() == false -> throw IONFILEExceptions.CopyRenameFailed.NoParentDirectory()
             }
             contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                 FileOutputStream(destinationFileObj).use { outputStream ->
                     val bytesWritten = inputStream.copyTo(outputStream)
                     if (bytesWritten <= 0) {
-                        throw IONFLSTExceptions.UnknownError()
+                        throw IONFILEExceptions.UnknownError()
                     }
                 }
-            } ?: throw IONFLSTExceptions.UnknownError()
+            } ?: throw IONFILEExceptions.UnknownError()
         }.mapError()
     }
 
@@ -164,7 +164,7 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
             ?: cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                 .takeIf { it >= 0 }
         return columnIndex?.let { cursor.getString(columnIndex) }
-            ?: throw IONFLSTExceptions.UnknownError()
+            ?: throw IONFILEExceptions.UnknownError()
     }
 
     /**
@@ -219,8 +219,8 @@ class IONFLSTContentHelper(private val contentResolver: ContentResolver) {
         exceptionOrNull()?.let { Result.failure(it.mapError()) } ?: this
 
     private fun Throwable.mapError(): Throwable = when (this) {
-        is FileNotFoundException -> IONFLSTExceptions.DoesNotExist()
-        is UnsupportedOperationException -> IONFLSTExceptions.UnknownError()
+        is FileNotFoundException -> IONFILEExceptions.DoesNotExist()
+        is UnsupportedOperationException -> IONFILEExceptions.UnknownError()
         else -> this
     }
 }

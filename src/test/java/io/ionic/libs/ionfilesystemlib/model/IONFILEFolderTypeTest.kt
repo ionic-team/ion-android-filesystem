@@ -6,15 +6,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class IONFLSTFolderTypeTest {
+class IONFILEFolderTypeTest {
 
     @Test
-    fun `check that there are no duplicate aliases for IONFLSTFolderType`() = runTest {
+    fun `check that there are no duplicate aliases for IONFILEFolderType`() = runTest {
         // This check is to provide some protection against
         //  providing an alias that can match for more than one folder type
-        val entries = IONFLSTFolderType.entries
+        val entries = IONFILEFolderType.entries
         val allAliases = entries.map { listOf(it.name) + it.alternateNames }.flatten()
-        val coercedAliases = allAliases.map { IONFLSTFolderType.coerceFolderAlias(it) }
+        val coercedAliases = allAliases.map { IONFILEFolderType.coerceFolderAlias(it) }
 
         val distinctCoercedAliases = coercedAliases.distinct()
 
@@ -25,9 +25,9 @@ class IONFLSTFolderTypeTest {
     fun `test mapping cache`() = runTest {
         val input = "cache"
 
-        val result = IONFLSTFolderType.fromStringAlias(input)
+        val result = IONFILEFolderType.fromStringAlias(input)
 
-        assertEquals(IONFLSTFolderType.INTERNAL_CACHE, result)
+        assertEquals(IONFILEFolderType.INTERNAL_CACHE, result)
         assertFalse(result!!.requiresPermission)
     }
 
@@ -35,18 +35,18 @@ class IONFLSTFolderTypeTest {
     fun `test mapping data`() = runTest {
         val input = "data"
 
-        val result = IONFLSTFolderType.fromStringAlias(input)
+        val result = IONFILEFolderType.fromStringAlias(input)
 
-        assertEquals(IONFLSTFolderType.INTERNAL_FILES, result)
+        assertEquals(IONFILEFolderType.INTERNAL_FILES, result)
     }
 
     @Test
     fun `test mapping external`() = runTest {
         val input = "EXTERNAL"
 
-        val result = IONFLSTFolderType.fromStringAlias(input)
+        val result = IONFILEFolderType.fromStringAlias(input)
 
-        assertEquals(IONFLSTFolderType.EXTERNAL_FILES, result)
+        assertEquals(IONFILEFolderType.EXTERNAL_FILES, result)
         assertFalse(result!!.requiresPermission)
     }
 
@@ -54,9 +54,9 @@ class IONFLSTFolderTypeTest {
     fun `test mapping cache-external`() = runTest {
         val input = "cache-external"
 
-        val result = IONFLSTFolderType.fromStringAlias(input)
+        val result = IONFILEFolderType.fromStringAlias(input)
 
-        assertEquals(IONFLSTFolderType.EXTERNAL_CACHE, result)
+        assertEquals(IONFILEFolderType.EXTERNAL_CACHE, result)
         assertFalse(result!!.requiresPermission)
     }
 
@@ -64,9 +64,9 @@ class IONFLSTFolderTypeTest {
     fun `test mapping ExternalStorage`() = runTest {
         val input = "ExternalStorage"
 
-        val result = IONFLSTFolderType.fromStringAlias(input)
+        val result = IONFILEFolderType.fromStringAlias(input)
 
-        assertEquals(IONFLSTFolderType.EXTERNAL_STORAGE, result)
+        assertEquals(IONFILEFolderType.EXTERNAL_STORAGE, result)
         assertTrue(result!!.requiresPermission)
     }
 }

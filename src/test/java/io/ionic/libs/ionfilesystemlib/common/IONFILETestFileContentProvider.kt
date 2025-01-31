@@ -26,7 +26,7 @@ internal const val IMAGE_FILE_CONTENT =
  * A simple test double of [android.content.ContentProvider].
  * Implements some operations that allow manipulating uris to files with content:// scheme
  */
-internal class IONFLSTTestFileContentProvider : ContentProvider() {
+internal class IONFILETestFileContentProvider : ContentProvider() {
 
     private val rootDir
         get() = File(System.getProperty("java.io.tmpdir"), "testCP")

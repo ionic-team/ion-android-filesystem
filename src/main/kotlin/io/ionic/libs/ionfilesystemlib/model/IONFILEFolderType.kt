@@ -7,7 +7,7 @@ import androidx.annotation.VisibleForTesting
  *
  * These folders are specific to local files, cannot be used with content:// scheme
  */
-enum class IONFLSTFolderType(
+enum class IONFILEFolderType(
     val requiresPermission: Boolean = false,
     internal val alternateNames: List<String> = emptyList()
 ) {
@@ -19,10 +19,10 @@ enum class IONFLSTFolderType(
     DOCUMENTS(requiresPermission = true);
 
     companion object {
-        fun fromStringAlias(alias: String?): IONFLSTFolderType? = if (alias.isNullOrBlank()) {
+        fun fromStringAlias(alias: String?): IONFILEFolderType? = if (alias.isNullOrBlank()) {
             null
         } else {
-            IONFLSTFolderType.entries.firstOrNull {
+            IONFILEFolderType.entries.firstOrNull {
                 aliasMatches(alias, it.name) || it.alternateNames.any { alternateName ->
                     aliasMatches(alias, alternateName)
                 }

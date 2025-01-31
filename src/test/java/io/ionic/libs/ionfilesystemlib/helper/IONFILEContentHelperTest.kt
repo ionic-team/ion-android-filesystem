@@ -4,19 +4,19 @@ import android.net.Uri
 import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_NAME
-import io.ionic.libs.ionfilesystemlib.common.IONFLSTTestFileContentProvider
+import io.ionic.libs.ionfilesystemlib.common.IONFILETestFileContentProvider
 import io.ionic.libs.ionfilesystemlib.common.LOREM_IPSUM_2800_CHARS
 import io.ionic.libs.ionfilesystemlib.common.TEST_CONTENT_PROVIDER_NAME
 import io.ionic.libs.ionfilesystemlib.common.TEST_TIMESTAMP
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_CONTENT
 import io.ionic.libs.ionfilesystemlib.common.TEXT_FILE_NAME
 import io.ionic.libs.ionfilesystemlib.common.fileUriWithEncodings
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTEncoding
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadByChunksOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTReadOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -32,20 +32,20 @@ import java.util.Base64
 import kotlin.math.ceil
 
 @RunWith(RobolectricTestRunner::class)
-class IONFLSTContentHelperTest {
+class IONFILEContentHelperTest {
 
     private val context get() = RuntimeEnvironment.getApplication().applicationContext
-    private lateinit var contentProvider: IONFLSTTestFileContentProvider
-    private lateinit var sut: IONFLSTContentHelper
+    private lateinit var contentProvider: IONFILETestFileContentProvider
+    private lateinit var sut: IONFILEContentHelper
 
     @Before
     fun setUp() {
         val contentResolver = context.contentResolver
         contentProvider = Robolectric.setupContentProvider(
-            IONFLSTTestFileContentProvider::class.java,
+            IONFILETestFileContentProvider::class.java,
             TEST_CONTENT_PROVIDER_NAME
         )
-        sut = IONFLSTContentHelper(contentResolver)
+        sut = IONFILEContentHelper(contentResolver)
     }
 
     @After
@@ -58,7 +58,7 @@ class IONFLSTContentHelperTest {
     fun `given text file, when reading from its content uri, success is returned`() = runTest {
         val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$TEXT_FILE_NAME")
 
-        val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.DefaultCharset))
+        val result = sut.readFile(uri, IONFILEReadOptions(IONFILEEncoding.DefaultCharset))
 
         assertTrue(result.isSuccess)
         assertEquals(TEXT_FILE_CONTENT, result.getOrNull())
@@ -69,7 +69,7 @@ class IONFLSTContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
 
-            val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.Base64))
+            val result = sut.readFile(uri, IONFILEReadOptions(IONFILEEncoding.Base64))
 
             assertTrue(result.isSuccess)
             assertEquals(
@@ -83,10 +83,10 @@ class IONFLSTContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
 
-            val result = sut.readFile(uri, IONFLSTReadOptions(IONFLSTEncoding.DefaultCharset))
+            val result = sut.readFile(uri, IONFILEReadOptions(IONFILEEncoding.DefaultCharset))
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
     // endregion readFile tests
 
@@ -97,7 +97,7 @@ class IONFLSTContentHelperTest {
             val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
 
             sut.readFileByChunks(
-                uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.DefaultCharset, Int.MAX_VALUE)
+                uri, IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, Int.MAX_VALUE)
             ).test {
 
                 assertEquals(IMAGE_FILE_CONTENT, awaitItem())
@@ -112,14 +112,14 @@ class IONFLSTContentHelperTest {
             val data = LOREM_IPSUM_2800_CHARS.repeat(2000)  // > 5 MB of text
             val chunkSize = 50000
             contentProvider.addToProvider(
-                IONFLSTTestFileContentProvider.TestFileContent(fileName, data, mimeType = null)
+                IONFILETestFileContentProvider.TestFileContent(fileName, data, mimeType = null)
             )
             val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$fileName")
             val chunkCount: Int = ceil(data.length.toFloat() / chunkSize).toInt()
             var result = ""
 
             sut.readFileByChunks(
-                uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, chunkSize)
+                uri, IONFILEReadByChunksOptions(IONFILEEncoding.Base64, chunkSize)
             ).test {
                 for (index in 1..chunkCount) {
                     val chunk = awaitItem()
@@ -139,11 +139,11 @@ class IONFLSTContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
 
-            sut.readFileByChunks(uri, IONFLSTReadByChunksOptions(IONFLSTEncoding.Base64, 1))
+            sut.readFileByChunks(uri, IONFILEReadByChunksOptions(IONFILEEncoding.Base64, 1))
                 .test {
                     val error = awaitError()
 
-                    assertTrue(error is IONFLSTExceptions.DoesNotExist)
+                    assertTrue(error is IONFILEExceptions.DoesNotExist)
                 }
         }
     // endregion readFileByChunks tests
@@ -157,12 +157,12 @@ class IONFLSTContentHelperTest {
 
         assertTrue(result.isSuccess)
         assertEquals(
-            IONFLSTMetadataResult(
+            IONFILEMetadataResult(
                 fullPath = uri.path ?: "",
                 name = "$TEXT_FILE_NAME.txt",
                 uri = uri,
                 size = TEXT_FILE_CONTENT.length.toLong(),
-                type = IONFLSTFileType.File("application/text"),
+                type = IONFILEFileType.File("application/text"),
                 createdTimestamp = TEST_TIMESTAMP,
                 lastModifiedTimestamp = TEST_TIMESTAMP
             ),
@@ -179,12 +179,12 @@ class IONFLSTContentHelperTest {
 
             assertTrue(result.isSuccess)
             assertEquals(
-                IONFLSTMetadataResult(
+                IONFILEMetadataResult(
                     fullPath = uri.path ?: "",
                     name = "$IMAGE_FILE_NAME.jpeg",
                     uri = uri,
                     size = IMAGE_FILE_CONTENT.length.toLong(),
-                    type = IONFLSTFileType.File("image/jpeg"),
+                    type = IONFILEFileType.File("image/jpeg"),
                     createdTimestamp = TEST_TIMESTAMP,
                     lastModifiedTimestamp = TEST_TIMESTAMP
                 ),
@@ -200,7 +200,7 @@ class IONFLSTContentHelperTest {
             val result = sut.getFileMetadata(uri)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
     // endregion getFileMetadata tests
 
@@ -223,7 +223,7 @@ class IONFLSTContentHelperTest {
             val result = sut.deleteFile(uri)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DeleteFailed.Unknown)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DeleteFailed.Unknown)
         }
     // endregion deleteFile tests
 
@@ -248,7 +248,7 @@ class IONFLSTContentHelperTest {
             val result = sut.copyFile(sourceUri, destinationFile.absolutePath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.DoesNotExist)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DoesNotExist)
         }
 
     @Test
@@ -260,7 +260,7 @@ class IONFLSTContentHelperTest {
             val result = sut.copyFile(sourceUri, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories)
         }
 
     @Test
@@ -273,7 +273,7 @@ class IONFLSTContentHelperTest {
             val result = sut.copyFile(sourceUri, destinationPath)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFLSTExceptions.CopyRenameFailed.NoParentDirectory)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.NoParentDirectory)
         }
     // endregion copyFile tests
 }

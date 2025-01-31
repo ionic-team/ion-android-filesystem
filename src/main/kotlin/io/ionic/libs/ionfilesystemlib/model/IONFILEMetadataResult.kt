@@ -9,22 +9,22 @@ import android.net.Uri
  * @param name the file name
  * @param uri the complete uri to the file
  * @param size the size in bytes
- * @param type type of file (directory or an actual file with a certain mimeType); see [IONFLSTFileType]
+ * @param type type of file (directory or an actual file with a certain mimeType); see [IONFILEFileType]
  * @param createdTimestamp local timestamp for file creation;
  *  for some files may be available only on Android 26 and above; 0 returned below Android 26
  * @param lastModifiedTimestamp local timestamp for last time file was modified
  */
-data class IONFLSTMetadataResult(
+data class IONFILEMetadataResult(
     val fullPath: String,
     val name: String,
     val uri: Uri,
     val size: Long,
-    val type: IONFLSTFileType,
+    val type: IONFILEFileType,
     val createdTimestamp: Long,
     val lastModifiedTimestamp: Long
 )
 
-sealed class IONFLSTFileType {
-    data object Directory : IONFLSTFileType()
-    data class File(val mimeType: String) : IONFLSTFileType()
+sealed class IONFILEFileType {
+    data object Directory : IONFILEFileType()
+    data class File(val mimeType: String) : IONFILEFileType()
 }

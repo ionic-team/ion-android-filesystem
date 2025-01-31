@@ -4,17 +4,17 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTCreateOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTDeleteOptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTExceptions
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTFileType
-import io.ionic.libs.ionfilesystemlib.model.IONFLSTMetadataResult
+import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
+import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.math.min
 
-// common methods and variables to different IONFLST helpers
+// common methods and variables to different IONFILE helpers
 
 internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
 
@@ -30,16 +30,16 @@ internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
  */
 internal fun createDirOrFile(
     fullPath: String,
-    options: IONFLSTCreateOptions,
+    options: IONFILECreateOptions,
     isDirectory: Boolean
 ): Result<Unit> =
     runCatching {
         val file = File(fullPath)
         if (file.exists()) {
-            throw IONFLSTExceptions.CreateFailed.AlreadyExists()
+            throw IONFILEExceptions.CreateFailed.AlreadyExists()
         }
         if (!checkParentDirectory(file, create = options.recursive)) {
-            throw IONFLSTExceptions.CreateFailed.NoParentDirectory()
+            throw IONFILEExceptions.CreateFailed.NoParentDirectory()
         }
         val createSucceeded = if (isDirectory) {
             file.mkdir()
@@ -47,7 +47,7 @@ internal fun createDirOrFile(
             file.createNewFile()
         }
         if (!createSucceeded) {
-            throw IONFLSTExceptions.CreateFailed.Unknown()
+            throw IONFILEExceptions.CreateFailed.Unknown()
         }
     }
 
@@ -60,22 +60,22 @@ internal fun createDirOrFile(
  */
 internal fun deleteDirOrFile(
     fullPath: String,
-    options: IONFLSTDeleteOptions
+    options: IONFILEDeleteOptions
 ): Result<Unit> = runCatching {
     val file = File(fullPath)
     if (!file.exists()) {
-        throw IONFLSTExceptions.DoesNotExist()
+        throw IONFILEExceptions.DoesNotExist()
     }
     val deleteSucceeded = if (file.isDirectory) {
         if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
-            throw IONFLSTExceptions.DeleteFailed.CannotDeleteChildren()
+            throw IONFILEExceptions.DeleteFailed.CannotDeleteChildren()
         }
         file.deleteRecursively()
     } else {
         file.delete()
     }
     if (!deleteSucceeded) {
-        throw IONFLSTExceptions.DeleteFailed.Unknown()
+        throw IONFILEExceptions.DeleteFailed.Unknown()
     }
 }
 
@@ -85,18 +85,18 @@ internal fun deleteDirOrFile(
  * @param fileObject the [File] representing a file or directory
  * @return metadata information on the file or directory
  */
-@SuppressLint("NewApi") // lint not detecting version check in IONFLSTBuildConfig
-internal fun getMetadata(fileObject: File): IONFLSTMetadataResult = IONFLSTMetadataResult(
+@SuppressLint("NewApi") // lint not detecting version check in IONFILEBuildConfig
+internal fun getMetadata(fileObject: File): IONFILEMetadataResult = IONFILEMetadataResult(
     fullPath = fileObject.absolutePath,
     name = fileObject.name,
     size = fileObject.length(),
     uri = Uri.fromFile(fileObject),
     type = if (fileObject.isDirectory) {
-        IONFLSTFileType.Directory
+        IONFILEFileType.Directory
     } else {
-        IONFLSTFileType.File(mimeType = getMimeType(fileObject))
+        IONFILEFileType.File(mimeType = getMimeType(fileObject))
     },
-    createdTimestamp = if (IONFLSTBuildConfig.getAndroidSdkVersionCode() > Build.VERSION_CODES.O) {
+    createdTimestamp = if (IONFILEBuildConfig.getAndroidSdkVersionCode() > Build.VERSION_CODES.O) {
         Files.readAttributes(fileObject.toPath(), BasicFileAttributes::class.java).let { attr ->
             // use the oldest of the two attributes
             min(attr.creationTime().toMillis(), attr.lastAccessTime().toMillis())
@@ -125,11 +125,11 @@ internal inline fun prepareForCopyOrRename(
     val destinationFileObj = File(destinationPath)
     when {
         sourceFileObj == destinationFileObj -> return
-        !sourceFileObj.exists() -> throw IONFLSTExceptions.DoesNotExist()
-        !forDirectories && (sourceFileObj.isDirectory || destinationFileObj.isDirectory) -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
-        forDirectories && (sourceFileObj.isFile || destinationFileObj.isFile) -> throw IONFLSTExceptions.CopyRenameFailed.MixingFilesAndDirectories()
-        destinationFileObj.parentFile?.exists() == false -> throw IONFLSTExceptions.CopyRenameFailed.NoParentDirectory()
-        forDirectories && destinationFileObj.isDirectory -> throw IONFLSTExceptions.CopyRenameFailed.DestinationDirectoryExists()
+        !sourceFileObj.exists() -> throw IONFILEExceptions.DoesNotExist()
+        !forDirectories && (sourceFileObj.isDirectory || destinationFileObj.isDirectory) -> throw IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+        forDirectories && (sourceFileObj.isFile || destinationFileObj.isFile) -> throw IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories()
+        destinationFileObj.parentFile?.exists() == false -> throw IONFILEExceptions.CopyRenameFailed.NoParentDirectory()
+        forDirectories && destinationFileObj.isDirectory -> throw IONFILEExceptions.CopyRenameFailed.DestinationDirectoryExists()
         else -> block(sourceFileObj, destinationFileObj)
     }
 }

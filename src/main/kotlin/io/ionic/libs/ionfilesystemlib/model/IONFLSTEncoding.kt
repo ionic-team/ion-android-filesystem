@@ -8,7 +8,18 @@ sealed class IONFLSTEncoding {
     data class WithCharset(val charset: Charset) : IONFLSTEncoding()
 
     companion object {
-        val Default = Base64
-        val DefaultCharset = WithCharset(Charsets.UTF_8)
+        internal val Default = Base64
+        internal val DefaultCharset = WithCharset(Charsets.UTF_8)
+
+        fun fromEncodingName(encodingName: String?): IONFLSTEncoding =
+            if (encodingName.isNullOrBlank()) {
+                Default
+            } else {
+                try {
+                    WithCharset(Charset.forName(encodingName))
+                } catch (ex: Exception) {
+                    DefaultCharset
+                }
+            }
     }
 }

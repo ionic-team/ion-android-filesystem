@@ -32,6 +32,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import java.io.File
 import java.util.Base64
 import kotlin.math.ceil
 
@@ -257,7 +258,9 @@ class IONFLSTControllerTests {
 
     @Test
     fun `given local file exists, when deleting it, success is returned`() = runTest {
-        val localFileUri = IONFLSTUri.Unresolved(IONFLSTFolderType.INTERNAL_FILES, "file.txt")
+        val localFileUri = IONFLSTUri.Resolved.Local(
+            fullPath = File(context.filesDir, "text.txt").absolutePath
+        )
         sut.createFile(localFileUri, IONFLSTCreateOptions(recursive = true))
             .let { assertTrue(it.isSuccess) }
 

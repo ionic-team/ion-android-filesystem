@@ -1,6 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.model
 
 import android.net.Uri
+import java.io.File
 
 sealed class IONFLSTUri {
     /**
@@ -36,7 +37,14 @@ sealed class IONFLSTUri {
             val fullPath: String,
             override val uri: Uri,
             val type: LocalUriType
-        ) : Resolved(uri)
+        ) : Resolved(uri) {
+
+            constructor(fullPath: String) : this(
+                fullPath,
+                Uri.fromFile(File(fullPath)),
+                LocalUriType.UNKNOWN
+            )
+        }
     }
 }
 

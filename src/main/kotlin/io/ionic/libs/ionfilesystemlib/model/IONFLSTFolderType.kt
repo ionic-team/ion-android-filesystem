@@ -11,8 +11,8 @@ enum class IONFLSTFolderType(
     val requiresPermission: Boolean = false,
     internal val alternateNames: List<String> = emptyList()
 ) {
-    INTERNAL_CACHE(alternateNames = listOf("CACHE")),
-    INTERNAL_FILES(alternateNames = listOf("DATA", "LIBRARY", "FILES")),
+    INTERNAL_CACHE(alternateNames = listOf("CACHE", "TEMPORARY")),
+    INTERNAL_FILES(alternateNames = listOf("DATA", "LIBRARY", "FILES", "LIBRARY_NO_CLOUD")),
     EXTERNAL_CACHE(alternateNames = listOf("CACHE_EXTERNAL")),
     EXTERNAL_FILES(alternateNames = listOf("EXTERNAL", "FILES_EXTERNAL")),
     EXTERNAL_STORAGE(requiresPermission = true, alternateNames = listOf("sdcard")),

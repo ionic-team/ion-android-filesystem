@@ -58,6 +58,7 @@ internal class IONFILELocalFilesHelper {
      *
      * Useful when the file does not fit in entirely memory.
      *
+     * @param fullPath full path of the file to read from
      * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
      * @return a (cold) flow in which the chunks are emitted;
      * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
@@ -70,6 +71,7 @@ internal class IONFILELocalFilesHelper {
     /**
      * Internal method for reading the contents of a file in chunks, allowing to pass a variable buffer size
      *
+     * @param fullPath full path of the file to read from
      * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
      * @param bufferSize the size of the buffer for reading from the stream.
      *  This is different from the chunk size, and should be a value that aligns with the OS page size

@@ -64,10 +64,6 @@ internal suspend fun InputStream.readByChunks(
             }
             onChunkRead(readChunk)
             readCount += bytesRead
-        } else if (readCount == 0) {
-            // read 0 bytes overall, meaning file is empty;
-            // will emmit an empty string to indicate empty file contents
-            onChunkRead("")
         }
     } while (bytesRead > 0)
 }

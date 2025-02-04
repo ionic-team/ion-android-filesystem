@@ -413,7 +413,7 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
 
     // region read by chunks tests
     @Test
-    fun `given empty file exists, when reading in chunks, empty string is emitted`() =
+    fun `given empty file exists, when reading in chunks, only complete even is emitted`() =
         runTest {
             val path = fileInRootDir.absolutePath
             sut.createFile(path, IONFILECreateOptions(recursive = false))
@@ -423,8 +423,6 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
                 IONFILEReadByChunksOptions(IONFILEEncoding.Default, Int.MAX_VALUE)
             ).test {
 
-                val result = awaitItem()
-                assertEquals("", result)
                 awaitComplete()
             }
         }

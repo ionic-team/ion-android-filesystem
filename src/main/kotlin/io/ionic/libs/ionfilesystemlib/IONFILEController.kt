@@ -108,7 +108,7 @@ class IONFILEController internal constructor(
     /**
      * Read the contents of a file, in chunks.
      *
-     * Useful when reading large files that may not fit entirely in memory
+     * Useful when reading large files that may not fit entirely in memory.
      *
      * This method will fail if a directory path is passed.
      *
@@ -130,6 +130,8 @@ class IONFILEController internal constructor(
      *
      * @param uri a [IONFILEUri] object; will resolve internally to determine the actual file
      * @param options the options for customizing file reading; see [IONFILEReadByChunksOptions]
+     * @return flow containing the chunks of the file read; if file is empty, no chunks are emitted - flow just completes.
+     *  Otherwise, error is thrown
      */
     @ExperimentalCoroutinesApi
     fun readFileByChunks(

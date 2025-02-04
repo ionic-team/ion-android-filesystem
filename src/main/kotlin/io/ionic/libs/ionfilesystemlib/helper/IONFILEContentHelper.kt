@@ -50,6 +50,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      *
      * Useful when the file does not fit in entirely memory.
      *
+     * @param uri the content uri to read the file from
      * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
      * @return a (cold) flow in which the chunks are emitted;
      * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)

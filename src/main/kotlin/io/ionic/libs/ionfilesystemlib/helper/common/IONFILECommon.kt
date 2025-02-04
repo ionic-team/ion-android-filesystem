@@ -102,7 +102,7 @@ internal fun getMetadata(fileObject: File): IONFILEMetadataResult = IONFILEMetad
             min(attr.creationTime().toMillis(), attr.lastAccessTime().toMillis())
         }
     } else {
-        0
+        null
     },
     lastModifiedTimestamp = fileObject.lastModified()
 )

@@ -629,7 +629,7 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
 
             assertTrue(result.isSuccess)
             result.getOrNull()!!.let {
-                assertTrue(it.lastModifiedTimestamp > it.createdTimestamp)
+                assertTrue(it.lastModifiedTimestamp > it.createdTimestamp!!)
             }
         }
 
@@ -643,7 +643,7 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
             val result = sut.getFileMetadata(path)
 
             assertTrue(result.isSuccess)
-            assertEquals(0L, result.getOrNull()?.createdTimestamp)
+            assertEquals(null, result.getOrNull()?.createdTimestamp)
         }
 
     @Test

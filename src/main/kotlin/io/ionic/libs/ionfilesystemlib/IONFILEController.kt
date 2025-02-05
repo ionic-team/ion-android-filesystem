@@ -20,7 +20,6 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEUri
 import io.ionic.libs.ionfilesystemlib.model.LocalUriType
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -133,7 +132,6 @@ class IONFILEController internal constructor(
      * @return flow containing the chunks of the file read; if file is empty, no chunks are emitted - flow just completes.
      *  Otherwise, error is thrown
      */
-    @ExperimentalCoroutinesApi
     fun readFileByChunks(
         uri: IONFILEUri,
         options: IONFILEReadByChunksOptions

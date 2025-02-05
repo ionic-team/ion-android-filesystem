@@ -56,7 +56,11 @@ internal class IONFILEUriHelper(context: Context) {
                 else -> throw IONFILEExceptions.UnresolvableUri(unresolvedUri.uriPath)
             }
         } else {
-            resolveAsLocalFile(parentFolderObject, unresolvedUri.uriPath)
+            resolveAsLocalFile(
+                parentFolderObject,
+                unresolvedUri.uriPath,
+                needsPermission = unresolvedUri.parentFolder?.requiresPermission
+            )
         }
         resolvedUri
     }
@@ -76,11 +80,14 @@ internal class IONFILEUriHelper(context: Context) {
      *
      * @param parentFolderFileObject the parent folder of the file, or null if there is none
      * @param localPath the local path to the file (minus the parent folder path)
+     * @param needsPermission true if file may require storage permissions, false if it does not,
+     *  null if unknown (will be determined from file path)
      * @return a [IONFILEUri.Resolved.Local] object
      */
     private suspend fun resolveAsLocalFile(
         parentFolderFileObject: File?,
-        localPath: String
+        localPath: String,
+        needsPermission: Boolean? = null
     ): IONFILEUri.Resolved.Local = withContext(Dispatchers.IO) {
         val localFileObject = if (parentFolderFileObject != null) {
             File(parentFolderFileObject, localPath)
@@ -88,6 +95,8 @@ internal class IONFILEUriHelper(context: Context) {
             File(localPath)
         }
         val fileUri = Uri.fromFile(localFileObject)
+        val requiresPermission =
+            needsPermission ?: getPermissionRequirementFromPath(localFileObject.absolutePath)
         return@withContext IONFILEUri.Resolved.Local(
             fullPath = localFileObject.path,
             uri = fileUri,
@@ -101,7 +110,8 @@ internal class IONFILEUriHelper(context: Context) {
             } catch (secEx: SecurityException) {
                 // could be that getting file information requires permissions that are not granted
                 LocalUriType.UNKNOWN
-            }
+            },
+            requiresPermission = requiresPermission
         )
     }
 
@@ -126,6 +136,24 @@ internal class IONFILEUriHelper(context: Context) {
         val contentUriPrefix: String = CONTENT_SCHEME + "media/"
         return Uri.parse(contentUriPrefix + location)
     }
+
+    /**
+     * Checks if the provided local file path requires storage permission.
+     *
+     * Will see if the file path is on a known parent folder of [IONFILEFolderType], and
+     *  if so, will return whether that folder requires permission;
+     * Otherwise, if it's not in a known parent folder, will assume it requires permission.
+     *
+     * @param localFilePath full path to the local file
+     * @return true if file requires permission, false otherwise.
+     */
+    private fun getPermissionRequirementFromPath(
+        localFilePath: String
+    ): Boolean = IONFILEFolderType.entries.firstOrNull {
+        it.getFolderFileObject()?.let { folderFileObject ->
+            localFilePath.contains(folderFileObject.absolutePath)
+        } ?: false
+    }?.requiresPermission ?: true
 
     /**
      * Get the full folder object from [IONFILEFolderType] enum

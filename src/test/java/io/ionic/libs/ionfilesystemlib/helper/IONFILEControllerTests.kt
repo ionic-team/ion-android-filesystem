@@ -1,6 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.helper
 
 import android.net.Uri
+import android.os.Environment
 import app.cash.turbine.test
 import io.ionic.libs.ionfilesystemlib.IONFILEController
 import io.ionic.libs.ionfilesystemlib.common.IMAGE_FILE_CONTENT
@@ -259,7 +260,7 @@ class IONFILEControllerTests {
     @Test
     fun `given local file exists, when deleting it, success is returned`() = runTest {
         val localFileUri = IONFILEUri.Resolved.Local(
-            fullPath = File(context.filesDir, "text.txt").absolutePath
+            fullPath = File(Environment.getExternalStorageDirectory(), "text.txt").absolutePath
         )
         sut.createFile(localFileUri, IONFILECreateOptions(recursive = true))
             .let { assertTrue(it.isSuccess) }

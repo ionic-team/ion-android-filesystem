@@ -93,7 +93,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "${context.cacheDir}/$path",
                     Uri.parse("file://${context.cacheDir}/$path"),
-                    LocalUriType.FILE
+                    LocalUriType.FILE,
+                    requiresPermission = false
                 ),
                 result.getOrNull()
             )
@@ -112,7 +113,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "${context.filesDir}/$path",
                     Uri.parse("file://${context.filesDir}/$path"),
-                    LocalUriType.DIRECTORY
+                    LocalUriType.DIRECTORY,
+                    requiresPermission = false
                 ),
                 result.getOrNull()
             )
@@ -131,7 +133,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "${context.externalCacheDir}/$path",
                     fileUriWithEncodings("file://${context.externalCacheDir}/$path"),
-                    LocalUriType.UNKNOWN
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = false
                 ),
                 result.getOrNull()
             )
@@ -149,7 +152,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "${context.getExternalFilesDir(null)}/$path",
                     fileUriWithEncodings("file://${context.getExternalFilesDir(null)}/$path"),
-                    LocalUriType.UNKNOWN
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = false
                 ),
                 result.getOrNull()
             )
@@ -167,7 +171,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "${Environment.getExternalStorageDirectory()}/$path",
                     fileUriWithEncodings("file://${Environment.getExternalStorageDirectory()}/$path"),
-                    LocalUriType.UNKNOWN
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = true
                 ),
                 result.getOrNull()
             )
@@ -187,7 +192,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     "$documentsDir/$path",
                     fileUriWithEncodings("file://$documentsDir/$path"),
-                    LocalUriType.UNKNOWN
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = true
                 ),
                 result.getOrNull()
             )
@@ -205,7 +211,8 @@ class IONFILEUriHelperTest {
                 IONFILEUri.Resolved.Local(
                     path,
                     fileUriWithEncodings("file://$path"),
-                    LocalUriType.UNKNOWN
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = true
                 ),
                 result.getOrNull()
             )
@@ -220,7 +227,12 @@ class IONFILEUriHelperTest {
             val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
-                IONFILEUri.Resolved.Local(path, Uri.parse("file://$path"), LocalUriType.UNKNOWN),
+                IONFILEUri.Resolved.Local(
+                    path,
+                    Uri.parse("file://$path"),
+                    LocalUriType.UNKNOWN,
+                    requiresPermission = true
+                ),
                 result.getOrNull()
             )
         }

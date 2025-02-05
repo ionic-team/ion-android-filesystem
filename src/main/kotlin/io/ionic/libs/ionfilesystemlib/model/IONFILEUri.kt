@@ -21,12 +21,16 @@ sealed class IONFILEUri {
      * Uri that was resolved and is now of a known type.
      *
      * Note that just because it is resolved, does not mean that the underlying file exists.
+     *
+     * @param uri the resolved android uri
+     * @param requiresPermission true if the file requires external storage permissions
+     *  (only relevant for Android 10 and below)
      */
-    sealed class Resolved(open val uri: Uri) : IONFILEUri() {
+    sealed class Resolved(open val uri: Uri, open val requiresPermission: Boolean) : IONFILEUri() {
         /**
          * Uri of content scheme (e.g. content://media...)
          */
-        data class Content(override val uri: Uri) : Resolved(uri)
+        data class Content(override val uri: Uri) : Resolved(uri, false)
 
         /**
          * Complete file path pointing to local file
@@ -36,13 +40,15 @@ sealed class IONFILEUri {
         data class Local(
             val fullPath: String,
             override val uri: Uri,
-            val type: LocalUriType
-        ) : Resolved(uri) {
+            val type: LocalUriType,
+            override val requiresPermission: Boolean
+        ) : Resolved(uri, requiresPermission) {
 
             constructor(fullPath: String) : this(
                 fullPath,
                 Uri.fromFile(File(fullPath)),
-                LocalUriType.UNKNOWN
+                LocalUriType.UNKNOWN,
+                requiresPermission = true
             )
         }
     }

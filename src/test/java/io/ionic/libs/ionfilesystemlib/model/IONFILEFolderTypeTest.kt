@@ -28,7 +28,7 @@ class IONFILEFolderTypeTest {
         val result = IONFILEFolderType.fromStringAlias(input)
 
         assertEquals(IONFILEFolderType.INTERNAL_CACHE, result)
-        assertFalse(result!!.requiresPermission)
+        assertFalse(result!!.inExternalStorage)
     }
 
     @Test
@@ -47,7 +47,7 @@ class IONFILEFolderTypeTest {
         val result = IONFILEFolderType.fromStringAlias(input)
 
         assertEquals(IONFILEFolderType.EXTERNAL_FILES, result)
-        assertFalse(result!!.requiresPermission)
+        assertFalse(result!!.inExternalStorage)
     }
 
     @Test
@@ -57,7 +57,7 @@ class IONFILEFolderTypeTest {
         val result = IONFILEFolderType.fromStringAlias(input)
 
         assertEquals(IONFILEFolderType.EXTERNAL_CACHE, result)
-        assertFalse(result!!.requiresPermission)
+        assertFalse(result!!.inExternalStorage)
     }
 
     @Test
@@ -67,6 +67,6 @@ class IONFILEFolderTypeTest {
         val result = IONFILEFolderType.fromStringAlias(input)
 
         assertEquals(IONFILEFolderType.EXTERNAL_STORAGE, result)
-        assertTrue(result!!.requiresPermission)
+        assertTrue(result!!.inExternalStorage)
     }
 }

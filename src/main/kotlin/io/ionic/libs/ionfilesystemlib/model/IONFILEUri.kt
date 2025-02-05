@@ -23,10 +23,10 @@ sealed class IONFILEUri {
      * Note that just because it is resolved, does not mean that the underlying file exists.
      *
      * @param uri the resolved android uri
-     * @param requiresPermission true if the file requires external storage permissions
-     *  (only relevant for Android 10 and below)
+     * @param inExternalStorage true if the file is external storage, false otherwise
+     *  (may requires permissions relevant for Android 10 and below)
      */
-    sealed class Resolved(open val uri: Uri, open val requiresPermission: Boolean) : IONFILEUri() {
+    sealed class Resolved(open val uri: Uri, open val inExternalStorage: Boolean) : IONFILEUri() {
         /**
          * Uri of content scheme (e.g. content://media...)
          */
@@ -41,14 +41,14 @@ sealed class IONFILEUri {
             val fullPath: String,
             override val uri: Uri,
             val type: LocalUriType,
-            override val requiresPermission: Boolean
-        ) : Resolved(uri, requiresPermission) {
+            override val inExternalStorage: Boolean
+        ) : Resolved(uri, inExternalStorage) {
 
             constructor(fullPath: String) : this(
                 fullPath,
                 Uri.fromFile(File(fullPath)),
                 LocalUriType.UNKNOWN,
-                requiresPermission = true
+                inExternalStorage = true
             )
         }
     }

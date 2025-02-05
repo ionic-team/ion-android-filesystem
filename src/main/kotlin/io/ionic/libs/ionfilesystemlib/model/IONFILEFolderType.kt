@@ -8,15 +8,15 @@ import androidx.annotation.VisibleForTesting
  * These folders are specific to local files, cannot be used with content:// scheme
  */
 enum class IONFILEFolderType(
-    val requiresPermission: Boolean = false,
+    val inExternalStorage: Boolean = false,
     internal val alternateNames: List<String> = emptyList()
 ) {
     INTERNAL_CACHE(alternateNames = listOf("CACHE", "TEMPORARY")),
     INTERNAL_FILES(alternateNames = listOf("DATA", "LIBRARY", "FILES", "LIBRARY_NO_CLOUD")),
     EXTERNAL_CACHE(alternateNames = listOf("CACHE_EXTERNAL")),
     EXTERNAL_FILES(alternateNames = listOf("EXTERNAL", "FILES_EXTERNAL")),
-    EXTERNAL_STORAGE(requiresPermission = true, alternateNames = listOf("sdcard")),
-    DOCUMENTS(requiresPermission = true);
+    EXTERNAL_STORAGE(inExternalStorage = true, alternateNames = listOf("sdcard")),
+    DOCUMENTS(inExternalStorage = true);
 
     companion object {
         fun fromStringAlias(alias: String?): IONFILEFolderType? = if (alias.isNullOrBlank()) {

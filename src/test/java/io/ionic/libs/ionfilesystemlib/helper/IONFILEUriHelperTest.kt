@@ -94,7 +94,7 @@ class IONFILEUriHelperTest {
                     "${context.cacheDir}/$path",
                     Uri.parse("file://${context.cacheDir}/$path"),
                     LocalUriType.FILE,
-                    requiresPermission = false
+                    inExternalStorage = false
                 ),
                 result.getOrNull()
             )
@@ -114,7 +114,7 @@ class IONFILEUriHelperTest {
                     "${context.filesDir}/$path",
                     Uri.parse("file://${context.filesDir}/$path"),
                     LocalUriType.DIRECTORY,
-                    requiresPermission = false
+                    inExternalStorage = false
                 ),
                 result.getOrNull()
             )
@@ -134,7 +134,7 @@ class IONFILEUriHelperTest {
                     "${context.externalCacheDir}/$path",
                     fileUriWithEncodings("file://${context.externalCacheDir}/$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = false
+                    inExternalStorage = false
                 ),
                 result.getOrNull()
             )
@@ -153,7 +153,7 @@ class IONFILEUriHelperTest {
                     "${context.getExternalFilesDir(null)}/$path",
                     fileUriWithEncodings("file://${context.getExternalFilesDir(null)}/$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = false
+                    inExternalStorage = false
                 ),
                 result.getOrNull()
             )
@@ -172,7 +172,7 @@ class IONFILEUriHelperTest {
                     "${Environment.getExternalStorageDirectory()}/$path",
                     fileUriWithEncodings("file://${Environment.getExternalStorageDirectory()}/$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = true
+                    inExternalStorage = true
                 ),
                 result.getOrNull()
             )
@@ -193,7 +193,7 @@ class IONFILEUriHelperTest {
                     "$documentsDir/$path",
                     fileUriWithEncodings("file://$documentsDir/$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = true
+                    inExternalStorage = true
                 ),
                 result.getOrNull()
             )
@@ -212,7 +212,7 @@ class IONFILEUriHelperTest {
                     path,
                     fileUriWithEncodings("file://$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = true
+                    inExternalStorage = true
                 ),
                 result.getOrNull()
             )
@@ -231,7 +231,7 @@ class IONFILEUriHelperTest {
                     path,
                     Uri.parse("file://$path"),
                     LocalUriType.UNKNOWN,
-                    requiresPermission = true
+                    inExternalStorage = true
                 ),
                 result.getOrNull()
             )

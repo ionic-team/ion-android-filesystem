@@ -20,7 +20,7 @@ sealed class IONFILEExceptions(message: String) : Exception(message) {
     sealed class CreateFailed(message: String) : IONFILEExceptions(message) {
         class AlreadyExists : CreateFailed("The file/directory already exists")
         class NoParentDirectory :
-            CreateFailed("Received recursive=false but missing parent directories")
+            CreateFailed("Missing parent directories - either recursive=false was received or parent directory creation failed")
     }
 
     sealed class DeleteFailed(message: String) : IONFILEExceptions(message) {

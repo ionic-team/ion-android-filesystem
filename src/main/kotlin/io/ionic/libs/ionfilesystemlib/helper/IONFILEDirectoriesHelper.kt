@@ -74,7 +74,7 @@ internal class IONFILEDirectoriesHelper {
                 val copySuccess =
                     sourceFileObj.copyRecursively(destinationFileObj, overwrite = false)
                 if (!copySuccess) {
-                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.UnknownError()
                 }
             }
         }
@@ -97,7 +97,7 @@ internal class IONFILEDirectoriesHelper {
             ) { sourceFileObj: File, destinationFileObj: File ->
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
-                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.UnknownError()
                 }
             }
         }

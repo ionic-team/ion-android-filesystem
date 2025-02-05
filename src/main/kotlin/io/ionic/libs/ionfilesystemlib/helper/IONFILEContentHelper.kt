@@ -115,7 +115,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
             if (rowsDeleted > 0) {
                 Unit
             } else {
-                throw IONFILEExceptions.DeleteFailed.Unknown()
+                throw IONFILEExceptions.UnknownError()
             }
         }.mapError()
     }

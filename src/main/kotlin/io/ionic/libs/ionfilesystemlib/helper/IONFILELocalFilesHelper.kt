@@ -191,7 +191,7 @@ internal class IONFILELocalFilesHelper {
             ) { sourceFileObj: File, destinationFileObj: File ->
                 val copiedFile = sourceFileObj.copyTo(destinationFileObj, overwrite = true)
                 if (!copiedFile.exists()) {
-                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.UnknownError()
                 }
             }
         }
@@ -215,7 +215,7 @@ internal class IONFILELocalFilesHelper {
                 destinationFileObj.delete()
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
-                    throw IONFILEExceptions.CopyRenameFailed.Unknown()
+                    throw IONFILEExceptions.UnknownError()
                 }
             }
         }

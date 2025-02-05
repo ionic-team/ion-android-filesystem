@@ -47,7 +47,7 @@ internal fun createDirOrFile(
             file.createNewFile()
         }
         if (!createSucceeded) {
-            throw IONFILEExceptions.CreateFailed.Unknown()
+            throw IONFILEExceptions.UnknownError()
         }
     }
 
@@ -75,7 +75,7 @@ internal fun deleteDirOrFile(
         file.delete()
     }
     if (!deleteSucceeded) {
-        throw IONFILEExceptions.DeleteFailed.Unknown()
+        throw IONFILEExceptions.UnknownError()
     }
 }
 

@@ -216,14 +216,14 @@ class IONFILEContentHelperTest {
         }
 
     @Test
-    fun `given file does not exist, when deleting it via content uri, Unknown error is returned`() =
+    fun `given file does not exist, when deleting it via content uri, UnknownError is returned`() =
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
 
             val result = sut.deleteFile(uri)
 
             assertTrue(result.isFailure)
-            assertTrue(result.exceptionOrNull() is IONFILEExceptions.DeleteFailed.Unknown)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.UnknownError)
         }
     // endregion deleteFile tests
 

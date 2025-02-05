@@ -231,12 +231,12 @@ class IONFILEController internal constructor(
     suspend fun copy(source: IONFILEUri, destination: IONFILEUri): Result<Uri> =
         uriHelper.useUriIfResolved(source) { resolvedSourceUri ->
             uriHelper.useUriIfResolved(destination) { resolvedDestinationUri ->
-                when {
+                val result = when {
                     resolvedSourceUri is IONFILEUri.Resolved.Local && resolvedDestinationUri is IONFILEUri.Resolved.Content ->
-                        return Result.failure(IONFILEExceptions.CopyRenameFailed.LocalToContent())
+                        Result.failure(IONFILEExceptions.CopyRenameFailed.LocalToContent())
 
                     resolvedSourceUri is IONFILEUri.Resolved.Content && resolvedDestinationUri is IONFILEUri.Resolved.Content ->
-                        return Result.failure(IONFILEExceptions.CopyRenameFailed.SourceAndDestinationContent())
+                        Result.failure(IONFILEExceptions.CopyRenameFailed.SourceAndDestinationContent())
 
                     resolvedSourceUri is IONFILEUri.Resolved.Local -> {
                         val sourcePath = resolvedSourceUri.fullPath
@@ -256,7 +256,7 @@ class IONFILEController internal constructor(
                         contentResolverHelper.copyFile(sourceUri, destinationPath)
                     }
                 }
-                Result.success(resolvedDestinationUri.uri)
+                result.map { resolvedDestinationUri.uri }
             }
         }
 
@@ -275,12 +275,12 @@ class IONFILEController internal constructor(
             uriHelper.useUriIfResolvedAsLocal(destination) { resolvedDestination ->
                 val sourcePath = resolvedSource.fullPath
                 val destinationPath = resolvedDestination.fullPath
-                if (resolvedSource.type == LocalUriType.DIRECTORY) {
+                val result = if (resolvedSource.type == LocalUriType.DIRECTORY) {
                     directoriesHelper.moveDirectory(sourcePath, destinationPath)
                 } else {
                     localFilesHelper.renameFile(sourcePath, destinationPath)
                 }
-                Result.success(resolvedDestination.uri)
+                result.map { resolvedDestination.uri }
             }
         }
 }

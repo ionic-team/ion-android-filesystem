@@ -128,7 +128,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      *
      * @param sourceUri the full content:// uri to the source file
      * @param destinationPath a local file path to copy to
-     * @return success if the file was copied successfully, false otherwise
+     * @return success if the file was copied successfully, error otherwise
      */
     suspend fun copyFile(
         sourceUri: Uri,

@@ -362,7 +362,9 @@ class IONFILEControllerTests {
     @Test
     fun `given source local file exists, when moving it, success is returned`() = runTest {
         val sourceUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_FILES, "oldFile.txt")
-        val destinationUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_CACHE, "newFile.txt")
+        val destinationUri = IONFILEUri.Unresolved(IONFILEFolderType.DOCUMENTS, "newFile.txt")
+        val documentsDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         sut.saveFile(
             sourceUri,
             options = IONFILESaveOptions(
@@ -377,7 +379,7 @@ class IONFILEControllerTests {
 
         assertTrue(result.isSuccess)
         assertEquals(
-            Uri.parse("file://${context.externalCacheDir?.absolutePath}/newFile.txt"),
+            Uri.parse("file://${documentsDir.absolutePath}/newFile.txt"),
             result.getOrNull()
         )
     }

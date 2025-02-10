@@ -61,7 +61,7 @@ internal class IONFILEDirectoriesHelper {
      *
      * @param sourcePath the full path to the source directory
      * @param destinationPath the full path to the destination directory
-     * @return success if the directory was copied successfully, false otherwise
+     * @return success if the directory was copied successfully, error otherwise
      */
     suspend fun copyDirectory(
         sourcePath: String,
@@ -83,9 +83,11 @@ internal class IONFILEDirectoriesHelper {
     /**
      * Rename or move a directory from one path to another
      *
+     * If rename/move fails, will attempt to copy the source recursively and then delete it, as a fallback
+     *
      * @param sourcePath the full path to the source directory
      * @param destinationPath the full path to the destination directory
-     * @return success if the directory was renamed/moved successfully, false otherwise
+     * @return success if the directory was renamed/moved successfully, error otherwise
      */
     suspend fun moveDirectory(
         sourcePath: String,
@@ -97,7 +99,12 @@ internal class IONFILEDirectoriesHelper {
             ) { sourceFileObj: File, destinationFileObj: File ->
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
-                    throw IONFILEExceptions.UnknownError()
+                    copyDirectory(sourcePath, destinationPath).getOrElse {
+                        throw IONFILEExceptions.UnknownError()
+                    }
+                    deleteDirectory(sourcePath, IONFILEDeleteOptions(recursive = true)).getOrElse {
+                        throw IONFILEExceptions.UnknownError()
+                    }
                 }
             }
         }

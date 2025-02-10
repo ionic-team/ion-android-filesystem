@@ -179,7 +179,7 @@ internal class IONFILELocalFilesHelper {
      *
      * @param sourcePath the full path to the source file
      * @param destinationPath the full path to the destination file
-     * @return success if the file was copied successfully, false otherwise
+     * @return success if the file was copied successfully, error otherwise
      */
     suspend fun copyFile(
         sourcePath: String,
@@ -200,9 +200,11 @@ internal class IONFILELocalFilesHelper {
     /**
      * Rename or move a file from one path to another.
      *
+     * If rename/move fails, will attempt to manually copy the source and then delete it, as a fallback
+     *
      * @param sourcePath the full path to the source file
      * @param destinationPath the full path to the destination file
-     * @return success if the file was renamed/moved successfully, false otherwise
+     * @return success if the file was renamed/moved successfully, error otherwise
      */
     suspend fun renameFile(
         sourcePath: String,
@@ -215,7 +217,10 @@ internal class IONFILELocalFilesHelper {
                 destinationFileObj.delete()
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
-                    throw IONFILEExceptions.UnknownError()
+                    copyFile(sourcePath, destinationPath).getOrElse {
+                        throw IONFILEExceptions.UnknownError()
+                    }
+                    deleteFile(sourcePath).getOrElse { throw IONFILEExceptions.UnknownError() }
                 }
             }
         }

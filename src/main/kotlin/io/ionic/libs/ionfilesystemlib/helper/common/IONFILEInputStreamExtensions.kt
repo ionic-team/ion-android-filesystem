@@ -2,10 +2,8 @@ package io.ionic.libs.ionfilesystemlib.helper.common
 
 import android.util.Base64
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.InputStreamReader
 
@@ -33,11 +31,11 @@ internal fun InputStream.readFull(options: IONFILEReadOptions): String =
  * @param options for reading from the stream, including the chunk size to return
  * @param bufferSize the size of the buffer for reading from the stream.
  *  This is different from the chunk size, and should be a value that aligns with the OS page size
- *  The buffer size may alter the chunkSize value to be used; refer to [IONFILEReadByChunksOptions]
+ *  The buffer size may alter the chunkSize value to be used; refer to [IONFILEReadInChunksOptions]
  * @param onChunkRead suspend function in which to return each chunk that was read
  */
 internal suspend fun InputStream.readByChunks(
-    options: IONFILEReadByChunksOptions,
+    options: IONFILEReadInChunksOptions,
     bufferSize: Int,
     onChunkRead: suspend (String) -> Unit,
 ) {

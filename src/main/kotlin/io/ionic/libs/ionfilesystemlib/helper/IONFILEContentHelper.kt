@@ -12,7 +12,7 @@ import io.ionic.libs.ionfilesystemlib.helper.common.readFull
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -51,13 +51,13 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * Useful when the file does not fit in entirely memory.
      *
      * @param uri the content uri to read the file from
-     * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
+     * @param options options for reading the file in chunks; refer to [IONFILEReadInChunksOptions]
      * @return a (cold) flow in which the chunks are emitted;
      * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
      */
-    fun readFileByChunks(
+    fun readFileInChunks(
         uri: Uri,
-        options: IONFILEReadByChunksOptions
+        options: IONFILEReadInChunksOptions
     ): Flow<String> = flow {
         contentResolver.openInputStream(uri)?.use { inputStream ->
             inputStream.readByChunks(

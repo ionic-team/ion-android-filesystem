@@ -13,7 +13,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
@@ -59,29 +59,29 @@ internal class IONFILELocalFilesHelper {
      * Useful when the file does not fit in entirely memory.
      *
      * @param fullPath full path of the file to read from
-     * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
+     * @param options options for reading the file in chunks; refer to [IONFILEReadInChunksOptions]
      * @return a (cold) flow in which the chunks are emitted;
      * the flow completes after all chunks are emitted (unless an error occurs somewhere in-between)
      */
-    fun readFileByChunks(
+    fun readFileInChunks(
         fullPath: String,
-        options: IONFILEReadByChunksOptions,
-    ): Flow<String> = readFileByChunks(fullPath, options, bufferSize = DEFAULT_BUFFER_SIZE)
+        options: IONFILEReadInChunksOptions,
+    ): Flow<String> = readFileInChunks(fullPath, options, bufferSize = DEFAULT_BUFFER_SIZE)
 
     /**
      * Internal method for reading the contents of a file in chunks, allowing to pass a variable buffer size
      *
      * @param fullPath full path of the file to read from
-     * @param options options for reading the file in chunks; refer to [IONFILEReadByChunksOptions]
+     * @param options options for reading the file in chunks; refer to [IONFILEReadInChunksOptions]
      * @param bufferSize the size of the buffer for reading from the stream.
      *  This is different from the chunk size, and should be a value that aligns with the OS page size
-     *  The buffer size may alter the chunkSize value to be used; refer to [IONFILEReadByChunksOptions]
+     *  The buffer size may alter the chunkSize value to be used; refer to [IONFILEReadInChunksOptions]
      * @return a (cold) flow in which the chunks are emitted; the flow completes after emissions
      */
     @VisibleForTesting
-    internal fun readFileByChunks(
+    internal fun readFileInChunks(
         fullPath: String,
-        options: IONFILEReadByChunksOptions,
+        options: IONFILEReadInChunksOptions,
         bufferSize: Int
     ): Flow<String> = flow {
         val file = File(fullPath)

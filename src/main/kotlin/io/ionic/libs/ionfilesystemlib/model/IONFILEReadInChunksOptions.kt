@@ -1,7 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.model
 
 /**
- * Parameters for reading a file by chunks
+ * Parameters for reading a file in chunks
  *
  * @param encoding how the file data to return should be encoded; see [IONFILEEncoding]
  * @param chunkSize the desired amount of chunks to store in memory at a time.
@@ -15,7 +15,7 @@ package io.ionic.libs.ionfilesystemlib.model
  *  There is no check on a maximum value for chunkSize, meaning that if you provide a very large value,
  *      an OutOfMemoryError may be thrown. Avoid using chunkSize larger than a few MB.
  */
-data class IONFILEReadByChunksOptions(
+data class IONFILEReadInChunksOptions(
     val encoding: IONFILEEncoding,
     val chunkSize: Int,
 )

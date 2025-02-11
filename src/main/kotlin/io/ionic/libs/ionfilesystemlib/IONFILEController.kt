@@ -15,7 +15,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEUri
@@ -86,7 +86,7 @@ class IONFILEController internal constructor(
     /**
      * Read the contents of a file.
      *
-     * Not recommended for large files (higher than a few MB) - use [readFileByChunks] for that
+     * Not recommended for large files (higher than a few MB) - use [readFileInChunks] for that
      *
      * This method will fail if a directory path is passed.
      *
@@ -114,7 +114,7 @@ class IONFILEController internal constructor(
      * Example usage:
      *
      * ```kotlin
-     * controller.readFileByChunks(path, options)
+     * controller.readFileInChunks(path, options)
      *     .onEach {
      *         // handle receiving chunks here
      *     }
@@ -128,22 +128,22 @@ class IONFILEController internal constructor(
      * ```
      *
      * @param uri a [IONFILEUri] object; will resolve internally to determine the actual file
-     * @param options the options for customizing file reading; see [IONFILEReadByChunksOptions]
+     * @param options the options for customizing file reading; see [IONFILEReadInChunksOptions]
      * @return flow containing the chunks of the file read; if file is empty, no chunks are emitted - flow just completes.
      *  Otherwise, error is thrown
      */
-    fun readFileByChunks(
+    fun readFileInChunks(
         uri: IONFILEUri,
-        options: IONFILEReadByChunksOptions
+        options: IONFILEReadInChunksOptions
     ): Flow<String> = flow {
         val resolveResult = uriHelper.useUriIfResolvedAsNonDirectory(uri) { Result.success(it) }
         resolveResult.fold(
             onSuccess = { resolvedUri ->
                 val readByChunksFlow = when (resolvedUri) {
                     is IONFILEUri.Resolved.Local ->
-                        localFilesHelper.readFileByChunks(resolvedUri.fullPath, options)
+                        localFilesHelper.readFileInChunks(resolvedUri.fullPath, options)
 
-                    else -> contentResolverHelper.readFileByChunks(resolvedUri.uri, options)
+                    else -> contentResolverHelper.readFileInChunks(resolvedUri.uri, options)
                 }
                 emitAll(readByChunksFlow)
             },

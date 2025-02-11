@@ -9,7 +9,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
@@ -418,9 +418,9 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
             val path = fileInRootDir.absolutePath
             sut.createFile(path, IONFILECreateOptions(recursive = false))
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 path,
-                IONFILEReadByChunksOptions(IONFILEEncoding.Default, Int.MAX_VALUE)
+                IONFILEReadInChunksOptions(IONFILEEncoding.Default, Int.MAX_VALUE)
             ).test {
 
                 awaitComplete()
@@ -441,9 +441,9 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
                 )
             )
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 path,
-                IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, Int.MAX_VALUE)
+                IONFILEReadInChunksOptions(IONFILEEncoding.DefaultCharset, Int.MAX_VALUE)
             ).test {
 
                 val result = awaitItem()
@@ -477,9 +477,9 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
             val hasAdditionalChunk = (chunkSize * splits < fileContents.length)
             var result = ""
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 path,
-                IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, chunkSize),
+                IONFILEReadInChunksOptions(IONFILEEncoding.DefaultCharset, chunkSize),
                 bufferSize = chunkSize / 2 // to make sure all the chunks are emitted, while reading from file multiple times
             ).test {
                 val loopStart = if (hasAdditionalChunk) 0 else 1
@@ -518,9 +518,9 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
                 (((chunkSize / 3 * 3) + 3) * splits < LOREM_IPSUM_2800_CHARS.length)
             var result = ""
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 path,
-                IONFILEReadByChunksOptions(IONFILEEncoding.Base64, chunkSize),
+                IONFILEReadInChunksOptions(IONFILEEncoding.Base64, chunkSize),
                 bufferSize = chunkSize / 3 // to make sure all the chunks are emitted, while reading from file multiple times
             ).test {
                 val loopStart = if (hasAdditionalChunk) 0 else 1
@@ -543,9 +543,9 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
             val file = fileInRootDir
             val path = file.absolutePath
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 path,
-                IONFILEReadByChunksOptions(IONFILEEncoding.Default, 1)
+                IONFILEReadInChunksOptions(IONFILEEncoding.Default, 1)
             ).test {
 
                 val result = awaitError()

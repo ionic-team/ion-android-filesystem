@@ -15,7 +15,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFILEMetadataResult
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -90,14 +90,14 @@ class IONFILEContentHelperTest {
         }
     // endregion readFile tests
 
-    // region readFileByChunks tests
+    // region readFileInChunks tests
     @Test
     fun `given file has content, when reading with a very large chunk size, content is emitted once`() =
         runTest {
             val uri = fileUriWithEncodings("content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME")
 
-            sut.readFileByChunks(
-                uri, IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, Int.MAX_VALUE)
+            sut.readFileInChunks(
+                uri, IONFILEReadInChunksOptions(IONFILEEncoding.DefaultCharset, Int.MAX_VALUE)
             ).test {
 
                 assertEquals(IMAGE_FILE_CONTENT, awaitItem())
@@ -118,8 +118,8 @@ class IONFILEContentHelperTest {
             val chunkCount: Int = ceil(data.length.toFloat() / chunkSize).toInt()
             var result = ""
 
-            sut.readFileByChunks(
-                uri, IONFILEReadByChunksOptions(IONFILEEncoding.Base64, chunkSize)
+            sut.readFileInChunks(
+                uri, IONFILEReadInChunksOptions(IONFILEEncoding.Base64, chunkSize)
             ).test {
                 for (index in 1..chunkCount) {
                     val chunk = awaitItem()
@@ -139,14 +139,14 @@ class IONFILEContentHelperTest {
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")
 
-            sut.readFileByChunks(uri, IONFILEReadByChunksOptions(IONFILEEncoding.Base64, 1))
+            sut.readFileInChunks(uri, IONFILEReadInChunksOptions(IONFILEEncoding.Base64, 1))
                 .test {
                     val error = awaitError()
 
                     assertTrue(error is IONFILEExceptions.DoesNotExist)
                 }
         }
-    // endregion readFileByChunks tests
+    // endregion readFileInChunks tests
 
     // region getFileMetadata tests
     @Test

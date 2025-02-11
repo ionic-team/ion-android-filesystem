@@ -17,7 +17,7 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFileType
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFolderType
-import io.ionic.libs.ionfilesystemlib.model.IONFILEReadByChunksOptions
+import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
@@ -166,9 +166,9 @@ class IONFILEControllerTests {
             val numberOfChunks = ceil(data.length.toFloat() / chunkSize).toInt()
             var result = ""
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 uriLocalFile,
-                IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, chunkSize)
+                IONFILEReadInChunksOptions(IONFILEEncoding.DefaultCharset, chunkSize)
             ).test {
                 (1..numberOfChunks).forEach { index ->
                     val chunk = awaitItem()
@@ -191,9 +191,9 @@ class IONFILEControllerTests {
                 "content://$TEST_CONTENT_PROVIDER_NAME/$IMAGE_FILE_NAME"
             )
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 uriContentScheme,
-                IONFILEReadByChunksOptions(IONFILEEncoding.Base64, Int.MAX_VALUE)
+                IONFILEReadInChunksOptions(IONFILEEncoding.Base64, Int.MAX_VALUE)
             ).test {
                 val result = awaitItem()
 
@@ -470,9 +470,9 @@ class IONFILEControllerTests {
             sut.createDirectory(uriLocalDirectory, IONFILECreateOptions(recursive = true))
                 .let { assertTrue(it.isSuccess) }
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 uriLocalDirectory,
-                IONFILEReadByChunksOptions(IONFILEEncoding.Base64, 1)
+                IONFILEReadInChunksOptions(IONFILEEncoding.Base64, 1)
             ).test {
                 val error = awaitError()
 
@@ -488,9 +488,9 @@ class IONFILEControllerTests {
                 "nonExistent"
             )
 
-            sut.readFileByChunks(
+            sut.readFileInChunks(
                 uriLocalFile,
-                IONFILEReadByChunksOptions(IONFILEEncoding.DefaultCharset, 8192)
+                IONFILEReadInChunksOptions(IONFILEEncoding.DefaultCharset, 8192)
             ).test {
                 val error = awaitError()
 

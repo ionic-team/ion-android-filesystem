@@ -26,7 +26,9 @@ internal fun InputStream.readFull(options: IONFILEReadOptions): String =
     }
 
 /**
- * Reads the contents of an [InputStream] in chunks,
+ * Reads the contents of an [InputStream] in chunks.
+ *
+ * This method is suspend, and should be called from a non-main thread (e.g. using Dispatchers.IO)
  *
  * @param options for reading from the stream, including the chunk size to return
  * @param bufferSize the size of the buffer for reading from the stream.
@@ -38,7 +40,7 @@ internal suspend fun InputStream.readByChunks(
     options: IONFILEReadByChunksOptions,
     bufferSize: Int,
     onChunkRead: suspend (String) -> Unit,
-) = withContext(Dispatchers.IO) {
+) {
     val chunkSize = minOf(options.chunkSize, available())
         .coerceAtLeast(bufferSize)
         .let {

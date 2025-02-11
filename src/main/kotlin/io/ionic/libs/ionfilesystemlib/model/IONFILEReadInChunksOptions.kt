@@ -4,7 +4,7 @@ package io.ionic.libs.ionfilesystemlib.model
  * Parameters for reading a file in chunks
  *
  * @param encoding how the file data to return should be encoded; see [IONFILEEncoding]
- * @param chunkSize the desired amount of chunks to store in memory at a time.
+ * @param chunkSize the desired amount of chunks to read from a file at a time.
  *  The actual chunkSize that the library uses may be different than what was supplied:
  *  1. If the file is smaller than chunkSize, it will only allocate enough bytes to read the file.
  *  2. [kotlin.io.DEFAULT_BUFFER_SIZE] is used if chunkSize supplied is smaller than it.

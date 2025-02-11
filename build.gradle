@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 buildscript {
     ext.kotlin_version = "1.9.24"
     ext.jacocoVersion = '0.8.9'
@@ -20,6 +22,7 @@ buildscript {
 
 plugins {
     id "org.sonarqube" version "3.5.0.2730"
+    id("org.jetbrains.dokka") version "2.0.0"
 }
 
 sonarqube {
@@ -85,6 +88,10 @@ android {
                 "jacoco/testDebugUnitTest.exec",
                 "outputs/code-coverage/connected/*coverage.ec"
         ]))
+    }
+
+    tasks.withType(DokkaTask.class).configureEach {
+        outputDirectory.set(file("docs"))
     }
 
     packagingOptions {

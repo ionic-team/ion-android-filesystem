@@ -91,7 +91,7 @@ android {
     }
 
     tasks.withType(DokkaTask.class).configureEach {
-        outputDirectory.set(file("docs"))
+        outputDirectory.set(file("dokka_docs"))
     }
 
     packagingOptions {

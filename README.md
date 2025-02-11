@@ -74,8 +74,13 @@ controller.readFileInChunks(path, options)
 
 ## Methods
 
-Documentation on the methods generated with [Dokka](https://kotlinlang.org/docs/dokka-introduction.html). See the [docs folder](docs/index.md).
+<!-- Dokka generates 100+ documentation files, that can occupy several overall MBs, hence they're not included in the repo -->
 
+Documentation on the methods is generated with [Dokka](https://kotlinlang.org/docs/dokka-introduction.html).
+
+<!-- TODO - in a future PR - publish the docs somewhere, such as Github pages? -->
+
+Checkout the repository and run `gradlew dokkaHtml` or `gradlew dokkaGfm`. Documentation will be generated in `dokka_docs` folder.
 
 ## Troubleshooting
 

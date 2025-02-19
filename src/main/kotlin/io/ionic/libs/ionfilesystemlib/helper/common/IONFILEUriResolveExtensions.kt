@@ -9,6 +9,8 @@ internal suspend inline fun <reified T> IONFILEUriHelper.useUriIfResolvedAsLocal
     uri: IONFILEUri,
     onResolved: (IONFILEUri.Resolved.Local) -> Result<T>
 ): Result<T> = useUriIfResolvedAsLocal(uri) { resolvedUri ->
+    // we only want to fail if we're sure the Uri is of type FILE
+    // if it is UNKNOWN, could be that the directory does not exist, and that check should be made outside of this method
     if (resolvedUri.type != LocalUriType.FILE) {
         onResolved(resolvedUri)
     } else {
@@ -20,6 +22,8 @@ internal suspend inline fun <reified T> IONFILEUriHelper.useUriIfResolvedAsLocal
     uri: IONFILEUri,
     onResolved: (IONFILEUri.Resolved.Local) -> Result<T>
 ): Result<T> = useUriIfResolvedAsLocal(uri) { resolvedUri ->
+    // we only want to fail if we're sure the Uri is of type DIRECTORY
+    // if it is UNKNOWN, could be that the file does not exist, and that check should be made outside of this method
     if (resolvedUri.type != LocalUriType.DIRECTORY) {
         onResolved(resolvedUri)
     } else {

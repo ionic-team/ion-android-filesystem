@@ -7,6 +7,7 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.BaseColumns
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import java.io.BufferedOutputStream
@@ -101,7 +102,7 @@ internal class IONFILETestFileContentProvider : ContentProvider() {
         val cursor = MatrixCursor(
             arrayOf(
                 BaseColumns._ID,
-                OpenableColumns.DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
                 OpenableColumns.SIZE,
                 MediaStore.MediaColumns.DATE_ADDED
             )

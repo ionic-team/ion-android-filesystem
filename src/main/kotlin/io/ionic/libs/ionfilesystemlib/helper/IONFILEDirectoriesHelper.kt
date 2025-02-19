@@ -24,7 +24,7 @@ internal class IONFILEDirectoriesHelper {
         withContext(Dispatchers.IO) {
             runCatching {
                 val file = File(fullPath)
-                if (!file.exists()) {
+                if (!file.exists() || !file.isDirectory) {
                     throw IONFILEExceptions.DoesNotExist()
                 }
                 val directoryEntries = file.listFiles()?.toList() ?: emptyList()

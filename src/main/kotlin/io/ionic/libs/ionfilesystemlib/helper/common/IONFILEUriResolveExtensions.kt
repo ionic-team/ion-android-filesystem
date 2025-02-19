@@ -53,15 +53,9 @@ internal suspend inline fun <reified T> IONFILEUriHelper.useUriIfResolved(
     uri: IONFILEUri,
     onResolved: (IONFILEUri.Resolved) -> Result<T>
 ): Result<T> {
-    val resolvedUri: IONFILEUri.Resolved = if (uri is IONFILEUri.Resolved) {
-        uri
-    } else {
-        resolveUri(uri as IONFILEUri.Unresolved).let {
-            it.getOrNull()
-                ?: return@useUriIfResolved Result.failure(
-                    it.exceptionOrNull() ?: NullPointerException()
-                )
-        }
+    val resolvedUri: IONFILEUri.Resolved = when (uri) {
+        is IONFILEUri.Resolved -> uri
+        is IONFILEUri.Unresolved -> resolveUri(uri).getOrElse { return Result.failure(it) }
     }
     return onResolved(resolvedUri)
 }

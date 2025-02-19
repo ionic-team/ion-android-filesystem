@@ -66,8 +66,8 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
                 onChunkRead = { chunk -> emit(chunk) }
             )
         } ?: throw IONFILEExceptions.UnknownError()
-    }.catch { throw it.mapError() }
-        .flowOn(Dispatchers.IO)
+    }.flowOn(Dispatchers.IO)
+        .catch { throw it.mapError() }
 
     /**
      * Gets information about a file using content resolver
@@ -112,9 +112,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
     suspend fun deleteFile(uri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val rowsDeleted = contentResolver.delete(uri, null, null)
-            if (rowsDeleted > 0) {
-                Unit
-            } else {
+            if (rowsDeleted <= 0) {
                 throw IONFILEExceptions.UnknownError()
             }
         }.mapError()
@@ -158,18 +156,21 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @return the name of the file, or exception if not found
      */
     private fun getNameForContentUri(cursor: Cursor): String {
-        val columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            .takeIf { it >= 0 }
-            ?: cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
-                .takeIf { it >= 0 }
-            ?: cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                .takeIf { it >= 0 }
+        val columnIndex = cursor.getColumnIndexForNames(
+            columnNames = listOf(
+                OpenableColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME
+            )
+        )
         return columnIndex?.let { cursor.getString(columnIndex) }
             ?: throw IONFILEExceptions.UnknownError()
     }
 
     /**
-     * Gets the size of the that the content uri is pointing to
+     * Gets the size of the that the content uri is pointing to.
+     *
+     * Will try to open the file and get its size if the android [Cursor] does not have the necessary column.
      *
      * @param cursor the android [Cursor] containing information about the uri
      * @param uri the content uri of the file, to try to open the file as a fallback if the cursor has no information
@@ -193,10 +194,12 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @return the timestamp of last modification for the file, or 0 if not found
      */
     private fun getLastModifiedTimestampForContentUri(cursor: Cursor): Long {
-        val columnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED)
-            .takeIf { it >= 0 }
-            ?: cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-                .takeIf { it >= 0 }
+        val columnIndex = cursor.getColumnIndexForNames(
+            columnNames = listOf(
+                MediaStore.MediaColumns.DATE_MODIFIED,
+                DocumentsContract.Document.COLUMN_LAST_MODIFIED
+            )
+        )
         return columnIndex?.let { cursor.getString(columnIndex).toLongOrNull() }
         // Images from photoPicker in MediaStore may not have modification date; fallback to date of creation if available
             ?: getCreatedTimestampForContentUri(cursor)
@@ -209,12 +212,18 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @return the timestamp of creation for file, or 0 if not found
      */
     private fun getCreatedTimestampForContentUri(cursor: Cursor): Long {
-        val columnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_TAKEN)
-            .takeIf { it >= 0 }
-            ?: cursor.getColumnIndex(MediaStore.MediaColumns.DATE_ADDED)
-                .takeIf { it >= 0 }
+        val columnIndex = cursor.getColumnIndexForNames(
+            columnNames = listOf(
+                MediaStore.MediaColumns.DATE_TAKEN,
+                MediaStore.MediaColumns.DATE_ADDED
+            )
+        )
         return columnIndex?.let { cursor.getString(columnIndex).toLongOrNull() } ?: 0L
     }
+
+    private fun Cursor.getColumnIndexForNames(
+        columnNames: List<String>
+    ): Int? = columnNames.firstNotNullOfOrNull { getColumnIndex(it).takeIf { index -> index >= 0 } }
 
     private fun <T> Result<T>.mapError(): Result<T> =
         exceptionOrNull()?.let { Result.failure(it.mapError()) } ?: this

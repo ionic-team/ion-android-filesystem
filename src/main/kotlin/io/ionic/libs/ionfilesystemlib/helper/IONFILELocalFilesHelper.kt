@@ -47,9 +47,9 @@ internal class IONFILELocalFilesHelper {
             if (!file.exists()) {
                 throw IONFILEExceptions.DoesNotExist()
             }
-            val inputStream = FileInputStream(file)
-            val fileContents: String = inputStream.readFull(options)
-            return@runCatching fileContents
+            FileInputStream(file).use { inputStream ->
+                inputStream.readFull(options)
+            }
         }
     }
 
@@ -144,21 +144,17 @@ internal class IONFILELocalFilesHelper {
                 )
                 createFileResult.exceptionOrNull()?.let { throw it }
             }
-            val fileStream = FileOutputStream(file, options.mode == IONFILESaveMode.APPEND)
-            if (options.encoding is IONFILEEncoding.WithCharset) {
-                val writer =
-                    BufferedWriter(OutputStreamWriter(fileStream, options.encoding.charset))
-                writer.use { writer.write(options.data) }
-            } else {
-                val outputStream = BufferedOutputStream(fileStream)
-                val dataToDecode = if (options.data.contains(",")) {
-                    // it is possible that the data comes as a data url "data:<type>;base64, <base64content>"
-                    options.data.split(",")[1].trim()
+            FileOutputStream(file, options.mode == IONFILESaveMode.APPEND).use { fileStream ->
+                if (options.encoding is IONFILEEncoding.WithCharset) {
+                    BufferedWriter(OutputStreamWriter(fileStream, options.encoding.charset)).use {
+                        it.write(options.data)
+                    }
                 } else {
-                    options.data
+                    // it is possible that the data comes as a data url "data:<type>;base64, <base64content>"
+                    val dataToDecode = options.data.substringAfter(",").trim()
+                    val base64Data = Base64.decode(dataToDecode, Base64.NO_WRAP)
+                    BufferedOutputStream(fileStream).use { it.write(base64Data) }
                 }
-                val base64Data = Base64.decode(dataToDecode, Base64.NO_WRAP)
-                outputStream.use { outputStream.write(base64Data) }
             }
         }
     }

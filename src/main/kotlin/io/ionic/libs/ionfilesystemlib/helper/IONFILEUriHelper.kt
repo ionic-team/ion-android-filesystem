@@ -89,28 +89,14 @@ internal class IONFILEUriHelper(context: Context) {
         localPath: String,
         assumeExternalStorage: Boolean? = null
     ): IONFILEUri.Resolved.Local = withContext(Dispatchers.IO) {
-        val localFileObject = if (parentFolderFileObject != null) {
-            File(parentFolderFileObject, localPath)
-        } else {
-            File(localPath)
-        }
+        val localFileObject = getLocalFileObject(parentFolderFileObject, localPath)
         val fileUri = Uri.fromFile(localFileObject)
         val isFileInExternalStorage =
             assumeExternalStorage ?: isInExternalStorage(localFileObject.absolutePath)
         return@withContext IONFILEUri.Resolved.Local(
             fullPath = localFileObject.path,
             uri = fileUri,
-            type = try {
-                when {
-                    !localFileObject.exists() -> LocalUriType.UNKNOWN
-                    localFileObject.isDirectory -> LocalUriType.DIRECTORY
-                    localFileObject.isFile -> LocalUriType.FILE
-                    else -> LocalUriType.UNKNOWN
-                }
-            } catch (secEx: SecurityException) {
-                // could be that getting file information requires permissions that are not granted
-                LocalUriType.UNKNOWN
-            },
+            type = getLocalUriType(localFileObject),
             inExternalStorage = isFileInExternalStorage
         )
     }
@@ -135,6 +121,34 @@ internal class IONFILEUriHelper(context: Context) {
         val location = path.substring(syntheticPathEndIndex, extensionIndex)
         val contentUriPrefix: String = CONTENT_SCHEME + "media/"
         return Uri.parse(contentUriPrefix + location)
+    }
+
+    /**
+     * Get a reference to the local file
+     *
+     * @param parentFolderFileObject the parent folder of the file, or null if there is none
+     * @param localPath the local path to the file (minus the parent folder path)
+     * @return a [File] object pointing to the local file
+     */
+    private fun getLocalFileObject(parentFolderFileObject: File?, localPath: String): File =
+        parentFolderFileObject?.let { File(it, localPath) } ?: File(localPath)
+
+    /**
+     * Gets the type of local file uri
+     *
+     * @param localFileObject The [File] object pointing to the local file
+     * @return the [LocalUriType]
+     */
+    private fun getLocalUriType(localFileObject: File): LocalUriType = try {
+        when {
+            !localFileObject.exists() -> LocalUriType.UNKNOWN
+            localFileObject.isDirectory -> LocalUriType.DIRECTORY
+            localFileObject.isFile -> LocalUriType.FILE
+            else -> LocalUriType.UNKNOWN
+        }
+    } catch (secEx: SecurityException) {
+        // could be that getting file information requires permissions that are not granted
+        LocalUriType.UNKNOWN
     }
 
     /**

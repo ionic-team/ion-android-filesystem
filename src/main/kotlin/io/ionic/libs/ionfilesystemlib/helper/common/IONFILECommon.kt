@@ -15,8 +15,11 @@ import java.nio.file.attribute.BasicFileAttributes
 import kotlin.math.min
 
 // common methods and variables to different IONFILE helpers
-
 internal const val FILE_MIME_TYPE_FALLBACK = "application/octet-binary"
+private const val FILE_3GA_EXTENSION = "3ga"
+private const val FILE_3GA_MIME_TYPE = "audio/3gpp"
+private const val FILE_JAVASCRIPT_EXTENSION = "js"
+private const val FILE_JAVASCRIPT_MIME_TYPE = "text/javascript"
 
 /**
  * Create a directory or file
@@ -35,19 +38,15 @@ internal fun createDirOrFile(
 ): Result<Unit> =
     runCatching {
         val file = File(fullPath)
-        if (file.exists()) {
-            throw IONFILEExceptions.CreateFailed.AlreadyExists()
-        }
-        if (!checkParentDirectory(file, create = options.recursive)) {
-            throw IONFILEExceptions.CreateFailed.NoParentDirectory()
-        }
-        val createSucceeded = if (isDirectory) {
-            file.mkdir()
-        } else {
-            file.createNewFile()
-        }
-        if (!createSucceeded) {
-            throw IONFILEExceptions.UnknownError()
+        when {
+            file.exists() -> throw IONFILEExceptions.CreateFailed.AlreadyExists()
+
+            !checkParentDirectory(file, create = options.recursive) ->
+                throw IONFILEExceptions.CreateFailed.NoParentDirectory()
+
+            isDirectory && !file.mkdir() -> throw IONFILEExceptions.UnknownError()
+
+            !isDirectory && !file.createNewFile() -> throw IONFILEExceptions.UnknownError()
         }
     }
 
@@ -146,8 +145,8 @@ private fun getMimeType(fileObject: File): String {
     if (resolvedExtension == null) {
         // consider a few extensions that may be missing from android; otherwise return fallback
         resolvedExtension = when (extension) {
-            "3ga" -> "audio/3gpp"
-            "js" -> "text/javascript"
+            FILE_3GA_EXTENSION -> FILE_3GA_MIME_TYPE
+            FILE_JAVASCRIPT_EXTENSION -> FILE_JAVASCRIPT_MIME_TYPE
             else -> FILE_MIME_TYPE_FALLBACK
         }
     }

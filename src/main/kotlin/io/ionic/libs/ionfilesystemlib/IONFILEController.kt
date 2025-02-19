@@ -207,12 +207,15 @@ class IONFILEController internal constructor(
      */
     suspend fun delete(uri: IONFILEUri, options: IONFILEDeleteOptions): Result<Unit> =
         uriHelper.useUriIfResolved(uri) { resolvedUri ->
-            when {
-                resolvedUri is IONFILEUri.Resolved.Local && resolvedUri.type == LocalUriType.DIRECTORY ->
-                    directoriesHelper.deleteDirectory(resolvedUri.fullPath, options)
-
-                resolvedUri is IONFILEUri.Resolved.Local ->
-                    localFilesHelper.deleteFile(resolvedUri.fullPath)
+            when (resolvedUri) {
+                is IONFILEUri.Resolved.Local -> {
+                    val path = resolvedUri.fullPath
+                    if (resolvedUri.type == LocalUriType.DIRECTORY) {
+                        directoriesHelper.deleteDirectory(path, options)
+                    } else {
+                        localFilesHelper.deleteFile(path)
+                    }
+                }
 
                 else -> contentResolverHelper.deleteFile(resolvedUri.uri)
             }

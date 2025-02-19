@@ -2,7 +2,7 @@ ion-android-filesystem
 
 The `ion-android-filesystem` is a library built using `Kotlin` that allows management of files on Android applications.
 
-All file system methods are accessible via `IONFile`
+All file system methods are accessible via the `IONFILEController` class.
 
 ## Index
 
@@ -28,7 +28,7 @@ dependencies {
 }
 ```
 
-Most methods that are `suspend` and run outside the main thread, meaning they should be called from a coroutine scope, e.g.:
+Most methods that are `suspend` and run outside the main thread, so they should be called from a coroutine scope, e.g.:
 
 ```kotlin
 val controller = IONFILEController(context)
@@ -48,7 +48,7 @@ controller.createFile(filePathUri, options)
 coroutineScope.cancel()
 ```
 
-Other methods can return a kotlin `Flow` when multiple emissions. They also run outside the main thread. See the example below:
+Other methods can return a kotlin `Flow` to allow emitting multiple values. They also run outside the main thread. See the example below:
 
 ```kotlin
 val controller = IONFILEController(context)
@@ -80,7 +80,7 @@ Documentation on the methods is generated with [Dokka](https://kotlinlang.org/do
 
 <!-- TODO - in a future PR - publish the docs somewhere, such as Github pages? -->
 
-Checkout the repository and run `gradlew dokkaHtml` or `gradlew dokkaGfm`. Documentation will be generated in `dokka_docs` folder.
+Clone the repository and run `gradlew dokkaHtml` or `gradlew dokkaGfm`. Documentation will be generated in `dokka_docs` folder.
 
 ## Troubleshooting
 

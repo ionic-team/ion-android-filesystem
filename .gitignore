@@ -85,3 +85,6 @@ lint/tmp/
 # lint/reports/
 
 .DS_Store
+
+# dokka documetnation files;
+dokka_docs/

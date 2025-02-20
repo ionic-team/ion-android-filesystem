@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 buildscript {
     ext.kotlin_version = "1.9.24"
     ext.jacocoVersion = '0.8.9'
@@ -20,6 +22,7 @@ buildscript {
 
 plugins {
     id "org.sonarqube" version "3.5.0.2730"
+    id("org.jetbrains.dokka") version "2.0.0"
 }
 
 sonarqube {
@@ -87,6 +90,10 @@ android {
         ]))
     }
 
+    tasks.withType(DokkaTask.class).configureEach {
+        outputDirectory.set(file("dokka_docs"))
+    }
+
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -113,6 +120,7 @@ dependencies {
     testImplementation 'io.mockk:mockk:1.13.10'
     testImplementation 'app.cash.turbine:turbine:1.2.0'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+    testImplementation 'org.robolectric:robolectric:4.14'
 }
 
 if (System.getenv("SHOULD_PUBLISH") == "true") {

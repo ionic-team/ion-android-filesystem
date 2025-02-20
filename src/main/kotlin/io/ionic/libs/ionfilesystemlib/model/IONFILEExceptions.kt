@@ -1,12 +1,16 @@
 package io.ionic.libs.ionfilesystemlib.model
 
-sealed class IONFILEExceptions(message: String) : Exception(message) {
-    class UnresolvableUri(uri: String) :
+sealed class IONFILEExceptions(message: String, cause: Throwable? = null) :
+    Exception(message, cause) {
+
+    class UnresolvableUri(val uri: String) :
         IONFILEExceptions("Unable to resolve the provided uri=$uri")
 
-    class DoesNotExist : IONFILEExceptions("The file/directory does not exist")
+    class DoesNotExist(val path: String, override val cause: Throwable? = null) :
+        IONFILEExceptions("The file/directory at $path does not exist")
 
-    class UnknownError : IONFILEExceptions("An unknown error occurred.")
+    class UnknownError(override val cause: Throwable? = null) :
+        IONFILEExceptions("An unknown error occurred.")
 
     class NotSupportedForContentScheme :
         IONFILEExceptions("The requested operation is not supported on a content:// uri")
@@ -18,7 +22,7 @@ sealed class IONFILEExceptions(message: String) : Exception(message) {
         IONFILEExceptions("The request operation is not supported on files, only directories")
 
     sealed class CreateFailed(message: String) : IONFILEExceptions(message) {
-        class AlreadyExists : CreateFailed("The file/directory already exists")
+        class AlreadyExists(val path: String) : CreateFailed("The file/directory at $path already exists")
         class NoParentDirectory :
             CreateFailed("Missing parent directories - either recursive=false was received or parent directory creation failed")
     }
@@ -38,10 +42,10 @@ sealed class IONFILEExceptions(message: String) : Exception(message) {
         class SourceAndDestinationContent :
             CopyRenameFailed("Copy is not allowed from content:// to content://")
 
-        class DestinationDirectoryExists :
-            CopyRenameFailed("Cannot copy/rename to an existing directory")
+        class DestinationDirectoryExists(val path: String) :
+            CopyRenameFailed("Cannot copy/rename to an existing directory ($path)")
 
-        class NoParentDirectory :
+        class NoParentDirectory() :
             CopyRenameFailed("Unable to copy/rename because the destination's parent directory does not exist")
     }
 }

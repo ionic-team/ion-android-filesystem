@@ -39,7 +39,7 @@ internal fun createDirOrFile(
     runCatching {
         val file = File(fullPath)
         when {
-            file.exists() -> throw IONFILEExceptions.CreateFailed.AlreadyExists()
+            file.exists() -> throw IONFILEExceptions.CreateFailed.AlreadyExists(fullPath)
 
             !checkParentDirectory(file, create = options.recursive) ->
                 throw IONFILEExceptions.CreateFailed.NoParentDirectory()
@@ -63,7 +63,7 @@ internal fun deleteDirOrFile(
 ): Result<Unit> = runCatching {
     val file = File(fullPath)
     if (!file.exists()) {
-        throw IONFILEExceptions.DoesNotExist()
+        throw IONFILEExceptions.DoesNotExist(fullPath)
     }
     val deleteSucceeded = if (file.isDirectory) {
         if (!file.listFiles().isNullOrEmpty() && !options.recursive) {
@@ -124,11 +124,11 @@ internal inline fun prepareForCopyOrRename(
     val destinationFileObj = File(destinationPath)
     when {
         sourceFileObj == destinationFileObj -> return
-        !sourceFileObj.exists() -> throw IONFILEExceptions.DoesNotExist()
+        !sourceFileObj.exists() -> throw IONFILEExceptions.DoesNotExist(sourcePath)
         !forDirectories && (sourceFileObj.isDirectory || destinationFileObj.isDirectory) -> throw IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories()
         forDirectories && (sourceFileObj.isFile || destinationFileObj.isFile) -> throw IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories()
         destinationFileObj.parentFile?.exists() == false -> throw IONFILEExceptions.CopyRenameFailed.NoParentDirectory()
-        forDirectories && destinationFileObj.isDirectory -> throw IONFILEExceptions.CopyRenameFailed.DestinationDirectoryExists()
+        forDirectories && destinationFileObj.isDirectory -> throw IONFILEExceptions.CopyRenameFailed.DestinationDirectoryExists(destinationPath)
         else -> block(sourceFileObj, destinationFileObj)
     }
 }

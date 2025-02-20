@@ -45,7 +45,7 @@ internal class IONFILELocalFilesHelper {
         runCatching {
             val file = File(fullPath)
             if (!file.exists()) {
-                throw IONFILEExceptions.DoesNotExist()
+                throw IONFILEExceptions.DoesNotExist(fullPath)
             }
             FileInputStream(file).use { inputStream ->
                 inputStream.readFull(options)
@@ -86,7 +86,7 @@ internal class IONFILELocalFilesHelper {
     ): Flow<String> = flow {
         val file = File(fullPath)
         if (!file.exists()) {
-            throw IONFILEExceptions.DoesNotExist()
+            throw IONFILEExceptions.DoesNotExist(fullPath)
         }
         FileInputStream(file).use { inputStream ->
             inputStream.readByChunks(
@@ -108,7 +108,7 @@ internal class IONFILELocalFilesHelper {
             runCatching {
                 val file = File(fullPath)
                 if (!file.exists()) {
-                    throw IONFILEExceptions.DoesNotExist()
+                    throw IONFILEExceptions.DoesNotExist(fullPath)
                 }
                 getMetadata(fileObject = file)
             }
@@ -214,9 +214,11 @@ internal class IONFILELocalFilesHelper {
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
                     copyFile(sourcePath, destinationPath).getOrElse {
-                        throw IONFILEExceptions.UnknownError()
+                        throw IONFILEExceptions.UnknownError(cause = it)
                     }
-                    deleteFile(sourcePath).getOrElse { throw IONFILEExceptions.UnknownError() }
+                    deleteFile(sourcePath).getOrElse {
+                        throw IONFILEExceptions.UnknownError(cause = it)
+                    }
                 }
             }
         }

@@ -42,7 +42,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
                 inputStream.readFull(options)
             } ?: throw IONFILEExceptions.UnknownError()
             return@runCatching fileContents
-        }.mapError()
+        }.mapError(uri)
     }
 
     /**
@@ -67,7 +67,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
             )
         } ?: throw IONFILEExceptions.UnknownError()
     }.flowOn(Dispatchers.IO)
-        .catch { throw it.mapError() }
+        .catch { throw it.mapError(uri) }
 
     /**
      * Gets information about a file using content resolver
@@ -82,7 +82,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
                     ?: throw IONFILEExceptions.UnknownError()
                 cursor.use {
                     if (!cursor.moveToFirst()) {
-                        throw IONFILEExceptions.DoesNotExist()
+                        throw IONFILEExceptions.DoesNotExist(path = uri.toString())
                     }
                     contentResolver.persistedUriPermissions
                     val name = getNameForContentUri(cursor)
@@ -100,7 +100,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
                         lastModifiedTimestamp = lastModified
                     )
                 }
-            }.mapError()
+            }.mapError(uri)
         }
 
     /**
@@ -115,7 +115,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
             if (rowsDeleted <= 0) {
                 throw IONFILEExceptions.UnknownError()
             }
-        }.mapError()
+        }.mapError(uri)
     }
 
     /**
@@ -146,7 +146,7 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
                     }
                 }
             } ?: throw IONFILEExceptions.UnknownError()
-        }.mapError()
+        }.mapError(sourceUri)
     }
 
     /**
@@ -225,12 +225,12 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
         columnNames: List<String>
     ): Int? = columnNames.firstNotNullOfOrNull { getColumnIndex(it).takeIf { index -> index >= 0 } }
 
-    private fun <T> Result<T>.mapError(): Result<T> =
-        exceptionOrNull()?.let { Result.failure(it.mapError()) } ?: this
+    private fun <T> Result<T>.mapError(uri: Uri): Result<T> =
+        exceptionOrNull()?.let { Result.failure(it.mapError(uri)) } ?: this
 
-    private fun Throwable.mapError(): Throwable = when (this) {
-        is FileNotFoundException -> IONFILEExceptions.DoesNotExist()
-        is UnsupportedOperationException -> IONFILEExceptions.UnknownError()
+    private fun Throwable.mapError(uri: Uri): Throwable = when (this) {
+        is FileNotFoundException -> IONFILEExceptions.DoesNotExist(path = uri.toString(), cause = this)
+        is UnsupportedOperationException -> IONFILEExceptions.UnknownError(cause = this)
         else -> this
     }
 }

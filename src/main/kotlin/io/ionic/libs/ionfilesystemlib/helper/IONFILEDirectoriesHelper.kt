@@ -25,7 +25,7 @@ internal class IONFILEDirectoriesHelper {
             runCatching {
                 val file = File(fullPath)
                 if (!file.exists() || !file.isDirectory) {
-                    throw IONFILEExceptions.DoesNotExist()
+                    throw IONFILEExceptions.DoesNotExist(fullPath)
                 }
                 val directoryEntries = file.listFiles()?.toList() ?: emptyList()
                 directoryEntries.filterNotNull().map { getMetadata(it) }
@@ -100,10 +100,10 @@ internal class IONFILEDirectoriesHelper {
                 val renameSuccessful = sourceFileObj.renameTo(destinationFileObj)
                 if (!renameSuccessful) {
                     copyDirectory(sourcePath, destinationPath).getOrElse {
-                        throw IONFILEExceptions.UnknownError()
+                        throw IONFILEExceptions.UnknownError(cause = it)
                     }
                     deleteDirectory(sourcePath, IONFILEDeleteOptions(recursive = true)).getOrElse {
-                        throw IONFILEExceptions.UnknownError()
+                        throw IONFILEExceptions.UnknownError(cause = it)
                     }
                 }
             }

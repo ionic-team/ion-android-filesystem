@@ -66,8 +66,10 @@ controller.readFileInChunks(path, options)
     .catch {
         // handle errors here
     }
-    .onCompletion {
-        // handle file finished read successfully here
+    .onCompletion { error: Throwable? ->
+        if (error == null) {
+            // handle file finished read successfully here
+        }
     }
     .launchIn(coroutineScope)
 ```
@@ -80,7 +82,7 @@ Documentation on the methods is generated with [Dokka](https://kotlinlang.org/do
 
 <!-- TODO - in a future PR - publish the docs somewhere, such as Github pages? -->
 
-Clone the repository and run `gradlew dokkaHtml` or `gradlew dokkaGfm`. Documentation will be generated in `dokka_docs` folder.
+Clone the repository and run `./gradlew dokkaHtml` or `./gradlew dokkaGfm`. Documentation will be generated in `dokka_docs` folder.
 
 ## Troubleshooting
 

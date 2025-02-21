@@ -121,8 +121,10 @@ class IONFILEController internal constructor(
      *     .catch {
      *         // handle errors here
      *     }
-     *     .onCompletion {
-     *         // handle file finished read successfully here
+     *     .onCompletion { error ->
+     *         if (error == null) {
+     *             // handle file finished read successfully here
+     *         }
      *     }
      *     .launchIn(coroutineScope)
      * ```

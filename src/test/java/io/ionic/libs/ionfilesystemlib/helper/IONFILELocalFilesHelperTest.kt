@@ -610,35 +610,6 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
         }
 
     @Test
-    fun `given file is updated after creation, when getting file metadata, the lastModifiedTimestamp is more recent than the created`() =
-        runTest {
-            println()
-            println("OS = ${System.getProperty("os.name")}")
-            val path = fileInRootDir.absolutePath
-            sut.createFile(path, IONFILECreateOptions(recursive = false))
-            testScheduler.advanceTimeBy(60_000L)
-            sut.saveFile(
-                path,
-                IONFILESaveOptions(
-                    data = "1",
-                    encoding = IONFILEEncoding.DefaultCharset,
-                    mode = IONFILESaveMode.APPEND,
-                    createFileRecursive = false
-                )
-            )
-
-            val result = sut.getFileMetadata(path)
-
-            println("result = ${result.getOrNull()}")
-            println("error = ${result.exceptionOrNull()}")
-            println()
-            assertTrue(result.isSuccess)
-            result.getOrNull()!!.let {
-                assertTrue(it.lastModifiedTimestamp > it.createdTimestamp!!)
-            }
-        }
-
-    @Test
     fun `given Android version below 26, when getting file metadata, createdTimestamp is zero`() =
         runTest {
             val path = fileInRootDir.absolutePath

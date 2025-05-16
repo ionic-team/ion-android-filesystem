@@ -101,18 +101,19 @@ class IONFILEUriHelperTest {
         }
 
     @Test
-    fun `given there is an internal files directory, when resolving the uri, a Resolves#Local is returned`() =
+    fun `given there is an internal files directory with extra file separators, when resolving the uri, a Resolves#Local is returned`() =
         runTest {
-            val path = "path/to/directory"
+            val path = "path//to//directory"
             File(context.filesDir, path).mkdirs()
             val unresolvedUri = IONFILEUri.Unresolved(IONFILEFolderType.INTERNAL_FILES, path)
+            val expectedPath = path.replace("//", "/")
 
             val result = sut.resolveUri(unresolvedUri)
 
             assertEquals(
                 IONFILEUri.Resolved.Local(
-                    "${context.filesDir}/$path/",
-                    Uri.parse("file://${context.filesDir}/$path/"),
+                    "${context.filesDir}/$expectedPath/",
+                    Uri.parse("file://${context.filesDir}/$expectedPath/"),
                     LocalUriType.DIRECTORY,
                     inExternalStorage = false
                 ),

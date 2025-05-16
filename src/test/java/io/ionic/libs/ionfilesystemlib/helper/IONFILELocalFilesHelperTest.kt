@@ -180,6 +180,30 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
         }
 
     @Test
+    fun `given non-empty file exists, when reading file with extra file separator, success is returned with contents`() =
+        runTest {
+            val file = File(testRootDirectory, "subdir/extra_separator.txt")
+            val path = file.absolutePath
+            val pathExtraSeparator = path.replace("subdir/", "subdir//")
+            sut.saveFile(
+                path,
+                IONFILESaveOptions(
+                    LOREM_IPSUM_2800_CHARS,
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
+                    createFileRecursive = true
+                )
+            )
+
+            val result = sut.readFile(
+                pathExtraSeparator, IONFILEReadOptions(encoding = IONFILEEncoding.DefaultCharset)
+            )
+
+            assertTrue(result.isSuccess)
+            assertEquals(LOREM_IPSUM_2800_CHARS, result.getOrNull())
+        }
+
+    @Test
     fun `given non-empty file saved as base64, when reading file as utf-8, success is returned with utf-8 string`() =
         runTest {
             val file = fileInRootDir

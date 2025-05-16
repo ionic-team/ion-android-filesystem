@@ -22,7 +22,6 @@ import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveMode
 import io.ionic.libs.ionfilesystemlib.model.IONFILESaveOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEUri
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -43,7 +42,6 @@ import kotlin.math.ceil
  * These tests are not 100% exhaustive of the entire library.
  * That is because most of the logic is covered in IONFILE(...)HelperTest classes
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class IONFILEControllerTests {
 
@@ -94,7 +92,7 @@ class IONFILEControllerTests {
 
             assertTrue(result.isSuccess)
             assertEquals(
-                Uri.parse("file://${context.getExternalFilesDir(null)!!.absolutePath}/subDir1/subDir2/directory"),
+                Uri.parse("file://${context.getExternalFilesDir(null)!!.absolutePath}/subDir1/subDir2/directory/"),
                 result.getOrNull()
             )
         }
@@ -334,7 +332,7 @@ class IONFILEControllerTests {
 
         assertTrue(result.isSuccess)
         assertEquals(
-            Uri.parse("file://${context.filesDir.absolutePath}/f"),
+            Uri.parse("file://${context.filesDir.absolutePath}/f/"),
             result.getOrNull()
         )
     }
@@ -402,7 +400,7 @@ class IONFILEControllerTests {
 
         assertTrue(result.isSuccess)
         assertEquals(
-            Uri.parse("file://${context.filesDir.absolutePath}/f"),
+            Uri.parse("file://${context.filesDir.absolutePath}/f/"),
             result.getOrNull()
         )
     }

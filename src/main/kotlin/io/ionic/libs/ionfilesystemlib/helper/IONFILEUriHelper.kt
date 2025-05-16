@@ -3,10 +3,11 @@ package io.ionic.libs.ionfilesystemlib.helper
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
-import io.ionic.libs.ionfilesystemlib.model.LocalUriType
+import androidx.core.net.toUri
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEFolderType
 import io.ionic.libs.ionfilesystemlib.model.IONFILEUri
+import io.ionic.libs.ionfilesystemlib.model.LocalUriType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -36,7 +37,7 @@ internal class IONFILEUriHelper(context: Context) {
     ): Result<IONFILEUri.Resolved> = runCatching {
         val parentFolderObject = unresolvedUri.parentFolder.getFolderFileObject()
         val resolvedUri = if (parentFolderObject == null) {
-            val parsedUri = Uri.parse(unresolvedUri.uriPath)
+            val parsedUri = unresolvedUri.uriPath.toUri()
             when {
                 parsedUri.scheme == CONTENT_SCHEME_NAME -> resolveAsContentUri(parsedUri)
 
@@ -93,9 +94,15 @@ internal class IONFILEUriHelper(context: Context) {
         val fileUri = Uri.fromFile(localFileObject)
         val isFileInExternalStorage =
             assumeExternalStorage ?: isInExternalStorage(localFileObject.absolutePath)
+        var trailing = ""
+        if (!localFileObject.path.endsWith(File.separator) && localFileObject.isDirectory ||
+            (!localFileObject.exists() && localFileObject.extension.isBlank())
+        ) {
+            trailing = File.separator
+        }
         return@withContext IONFILEUri.Resolved.Local(
-            fullPath = localFileObject.path,
-            uri = fileUri,
+            fullPath = localFileObject.path + trailing,
+            uri = fileUri.buildUpon().path(fileUri.path + trailing).build(),
             type = getLocalUriType(localFileObject),
             inExternalStorage = isFileInExternalStorage
         )
@@ -120,7 +127,7 @@ internal class IONFILEUriHelper(context: Context) {
         }
         val location = path.substring(syntheticPathEndIndex, extensionIndex)
         val contentUriPrefix: String = CONTENT_SCHEME + "media/"
-        return Uri.parse(contentUriPrefix + location)
+        return (contentUriPrefix + location).toUri()
     }
 
     /**

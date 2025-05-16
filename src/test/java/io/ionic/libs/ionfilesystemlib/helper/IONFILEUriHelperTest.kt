@@ -111,8 +111,8 @@ class IONFILEUriHelperTest {
 
             assertEquals(
                 IONFILEUri.Resolved.Local(
-                    "${context.filesDir}/$path",
-                    Uri.parse("file://${context.filesDir}/$path"),
+                    "${context.filesDir}/$path/",
+                    Uri.parse("file://${context.filesDir}/$path/"),
                     LocalUriType.DIRECTORY,
                     inExternalStorage = false
                 ),
@@ -131,8 +131,8 @@ class IONFILEUriHelperTest {
 
             assertEquals(
                 IONFILEUri.Resolved.Local(
-                    "${context.externalCacheDir}/$path",
-                    fileUriWithEncodings("file://${context.externalCacheDir}/$path"),
+                    "${context.externalCacheDir}/$path/",
+                    fileUriWithEncodings("file://${context.externalCacheDir}/$path/"),
                     LocalUriType.UNKNOWN,
                     inExternalStorage = false
                 ),
@@ -150,8 +150,8 @@ class IONFILEUriHelperTest {
 
             assertEquals(
                 IONFILEUri.Resolved.Local(
-                    "${context.getExternalFilesDir(null)}/$path",
-                    fileUriWithEncodings("file://${context.getExternalFilesDir(null)}/$path"),
+                    "${context.getExternalFilesDir(null)}/$path/",
+                    fileUriWithEncodings("file://${context.getExternalFilesDir(null)}/$path/"),
                     LocalUriType.UNKNOWN,
                     inExternalStorage = false
                 ),
@@ -162,7 +162,8 @@ class IONFILEUriHelperTest {
     @Test
     fun `given non-existent directory path in external storage, when resolving the uri, a Resolves#Local is returned`() =
         runTest {
-            val path = "this is a directory/with multiple/parent/folders"
+            // trailing slash present, to make sure it does not get added again
+            val path = "this is a directory/with multiple/parent/folders/"
             val unresolvedUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_STORAGE, path)
 
             val result = sut.resolveUri(unresolvedUri)

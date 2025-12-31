@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2025-12-31
+
+- Add `readRange` method.
+
 ### 2025-06-26
 
 - Migrate publishing from OSSRH to Central Portal.

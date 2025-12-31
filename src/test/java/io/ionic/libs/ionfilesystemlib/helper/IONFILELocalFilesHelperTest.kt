@@ -830,4 +830,106 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
             assertTrue(result.exceptionOrNull() is IONFILEExceptions.CopyRenameFailed.MixingFilesAndDirectories)
         }
     // endregion renameFile tests
+    // region readRange tests
+    @Test
+    fun `readRange should read specific bytes from file`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "Hello, World!"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        val result = sut.readRange(
+            fullPath = path,
+            offset = 7,
+            length = 5,
+            options = IONFILEReadOptions(encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8))
+        )
+
+        assertEquals("World", result.getOrNull())
+    }
+
+    @Test
+    fun `readRange should handle Base64 encoding`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "Hello, World!"
+        sut.saveFile(
+             path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        val result = sut.readRange(
+            fullPath = path,
+            offset = 0,
+            length = 5,
+            options = IONFILEReadOptions(encoding = IONFILEEncoding.Base64)
+        )
+
+        // "Hello" in Base64 is "SGVsbG8="
+        assertEquals("SGVsbG8=", result.getOrNull())
+    }
+
+    @Test
+    fun `readRange should handle EOF gracefully`() = runTest {
+         val file = fileInRootDir
+         val path = file.absolutePath
+         val content = "12345"
+         sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+         val result = sut.readRange(
+             fullPath = path,
+             offset = 3,
+             length = 10, // Try to read past EOF
+             options = IONFILEReadOptions(encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8))
+         )
+
+         assertEquals("45", result.getOrNull())
+    }
+
+    @Test
+    fun `readRange should return empty string if offset is at EOF`() = runTest {
+         val file = fileInRootDir
+         val path = file.absolutePath
+         val content = "12345"
+         sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+         val result = sut.readRange(
+             fullPath = path,
+             offset = 5,
+             length = 10,
+             options = IONFILEReadOptions(encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8))
+         )
+
+         assertEquals("", result.getOrNull())
+    }
+    // endregion readRange tests
 }

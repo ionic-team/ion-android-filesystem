@@ -33,6 +33,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.Base64
 import kotlin.math.ceil
 
@@ -550,4 +551,45 @@ class IONFILEControllerTests {
             assertTrue(result.exceptionOrNull() is IONFILEExceptions.NotSupportedForContentScheme)
         }
     // endregion uri resolve errors
+
+    // region read file input errors
+    @Test
+    fun `given negative offset, when calling readFile, IllegalArgumentException is returned`() = runTest {
+        val uriLocalFile = IONFILEUri.Unresolved(
+            parentFolder = IONFILEFolderType.INTERNAL_FILES,
+            "fileToCreate.txt"
+        )
+
+        val result = sut.readFile(
+            uriLocalFile,
+            IONFILEReadOptions(
+                encoding = IONFILEEncoding.Base64,
+                offset = -1
+            )
+        )
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun `given length=0, when calling readFile, IllegalArgumentException is returned`() = runTest {
+        val uriLocalFile = IONFILEUri.Unresolved(
+            parentFolder = IONFILEFolderType.INTERNAL_FILES,
+            "fileToCreate.txt"
+        )
+
+        sut.readFileInChunks(
+            uriLocalFile,
+            IONFILEReadInChunksOptions(
+                encoding = IONFILEEncoding.Base64,
+                chunkSize = 64,
+                length = 0
+            )
+        ).test {
+            val error = awaitError()
+            assertTrue(error is IllegalArgumentException)
+        }
+    }
+    // region read file input errors
 }

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 2025-12-31
 
-- Add `readRange` method.
+- Feature: Add optional `length` and `offset` parameters to `readFile` and `readFileInChunks`.
 
 ### 2025-06-26
 

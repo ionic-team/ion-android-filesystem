@@ -20,6 +20,7 @@ private const val FILE_3GA_EXTENSION = "3ga"
 private const val FILE_3GA_MIME_TYPE = "audio/3gpp"
 private const val FILE_JAVASCRIPT_EXTENSION = "js"
 private const val FILE_JAVASCRIPT_MIME_TYPE = "text/javascript"
+internal const val LENGTH_DEFAULT_VALUE = Int.MAX_VALUE
 
 /**
  * Create a directory or file

@@ -54,57 +54,6 @@ internal class IONFILELocalFilesHelper {
     }
 
     /**
-     * Reads a specific range of bytes from a file
-     *
-     * @param fullPath full path of the file to read from
-     * @param offset the starting position in the file
-     * @param length the number of bytes to read
-     * @param options options for reading the file (encoding)
-     * @return success with file contents string if it was read successfully, error otherwise
-     */
-    suspend fun readRange(
-        fullPath: String,
-        offset: Long,
-        length: Int,
-        options: IONFILEReadOptions
-    ): Result<String> = withContext(Dispatchers.IO) {
-        runCatching {
-            val file = File(fullPath)
-            if (!file.exists()) {
-                throw IONFILEExceptions.DoesNotExist(fullPath)
-            }
-            if (offset < 0) {
-                 throw IllegalArgumentException("Offset cannot be negative")
-            }
-            if (length < 0) {
-                 throw IllegalArgumentException("Length cannot be negative")
-            }
-
-            java.io.RandomAccessFile(file, "r").use { raf ->
-                raf.seek(offset)
-                val buffer = ByteArray(length)
-                val bytesRead = raf.read(buffer)
-                
-                if (bytesRead == -1) {
-                     return@use ""
-                }
-
-                val actualBuffer = if (bytesRead < length) {
-                    buffer.copyOf(bytesRead)
-                } else {
-                    buffer
-                }
-
-                if (options.encoding is IONFILEEncoding.WithCharset) {
-                    String(actualBuffer, options.encoding.charset)
-                } else {
-                    Base64.encodeToString(actualBuffer, Base64.NO_WRAP)
-                }
-            }
-        }
-    }
-
-    /**
      * Reads the contents of a file in chunks
      *
      * Useful when the file does not fit entirely in memory.

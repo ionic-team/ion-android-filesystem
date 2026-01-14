@@ -1,5 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.model
 
+import io.ionic.libs.ionfilesystemlib.helper.common.LENGTH_DEFAULT_VALUE
+
 /**
  * Parameters for reading a file in chunks
  *
@@ -14,8 +16,15 @@ package io.ionic.libs.ionfilesystemlib.model
  *      This means multiple chunks can be concatenated and decoded together without losing data.
  *  There is no check on a maximum value for chunkSize, meaning that if you provide a very large value,
  *      an OutOfMemoryError may be thrown. Avoid using chunkSize larger than a few MB.
+ * @param offset An optional number of bytes to skip from the start of the file.
+ * Default is 0 (read from beginning of file).
+ * @param length The maximum number of bytes to read after the [offset].
+ * If fewer bytes are available before the end of the file, only the available bytes are returned.
+ * By default, will read the entirety of contents after [offset].
  */
 data class IONFILEReadInChunksOptions(
     val encoding: IONFILEEncoding,
     val chunkSize: Int,
+    val offset: Int = 0,
+    val length: Int = LENGTH_DEFAULT_VALUE
 )

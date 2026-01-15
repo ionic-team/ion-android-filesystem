@@ -1,7 +1,5 @@
 package io.ionic.libs.ionfilesystemlib.model
 
-import io.ionic.libs.ionfilesystemlib.helper.common.LENGTH_DEFAULT_VALUE
-
 /**
  * Parameters for reading a file in chunks
  *
@@ -26,5 +24,5 @@ data class IONFILEReadInChunksOptions(
     val encoding: IONFILEEncoding,
     val chunkSize: Int,
     val offset: Int = 0,
-    val length: Int = LENGTH_DEFAULT_VALUE
+    val length: Int = IONFILEConstants.LENGTH_READ_TIL_EOF
 )

@@ -1,6 +1,7 @@
 package io.ionic.libs.ionfilesystemlib.helper.common
 
 import android.util.Base64
+import io.ionic.libs.ionfilesystemlib.model.IONFILEConstants
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
@@ -17,7 +18,7 @@ import java.io.InputStreamReader
  */
 internal fun InputStream.readFull(options: IONFILEReadOptions): String {
     applyOffset(options.offset)
-    if (options.length in 1..<LENGTH_DEFAULT_VALUE) {
+    if (options.length in 1..<IONFILEConstants.LENGTH_READ_TIL_EOF) {
         var chunkBytesRead: Int
         var readFile = ""
         var totalBytesRead = 0

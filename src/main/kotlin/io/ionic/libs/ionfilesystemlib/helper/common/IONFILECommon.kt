@@ -134,6 +134,16 @@ internal inline fun prepareForCopyOrRename(
 }
 
 /**
+ * Validates offset and length parameters for file reading operations.
+ * @param offset the number of bytes to skip before reading; must be >= 0
+ * @param length the maximum number of bytes to read; must be > 0
+ */
+internal fun validateOffsetAndLength(offset: Int, length: Int) {
+    require(offset >= 0) { "offset must be >= 0, but was $offset" }
+    require(length > 0) { "length must be > 0, but was $length" }
+}
+
+/**
  * Gets the mime type from a file object
  *
  * @param fileObject the file object, that should represent an actual file (not a directory)
@@ -164,3 +174,4 @@ private fun getMimeType(fileObject: File): String {
 private fun checkParentDirectory(file: File, create: Boolean): Boolean = file.parentFile?.let {
     it.exists() || (create && it.mkdirs())
 } ?: false
+

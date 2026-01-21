@@ -11,6 +11,7 @@ import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocal
 import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocalDirectory
 import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsLocalFile
 import io.ionic.libs.ionfilesystemlib.helper.common.useUriIfResolvedAsNonDirectory
+import io.ionic.libs.ionfilesystemlib.helper.common.validateOffsetAndLength
 import io.ionic.libs.ionfilesystemlib.model.IONFILECreateOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEDeleteOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEExceptions
@@ -97,6 +98,8 @@ class IONFILEController internal constructor(
         uri: IONFILEUri,
         options: IONFILEReadOptions
     ): Result<String> = uriHelper.useUriIfResolvedAsNonDirectory(uri) { resolvedUri ->
+        runCatching { validateOffsetAndLength(options.offset, options.length) }
+            .onFailure { return@useUriIfResolvedAsNonDirectory Result.failure(it) }
         if (resolvedUri is IONFILEUri.Resolved.Local) {
             localFilesHelper.readFile(resolvedUri.fullPath, options)
         } else {
@@ -138,6 +141,7 @@ class IONFILEController internal constructor(
         uri: IONFILEUri,
         options: IONFILEReadInChunksOptions
     ): Flow<String> = flow {
+        validateOffsetAndLength(offset = options.offset, length = options.length)
         val resolveResult = uriHelper.useUriIfResolvedAsNonDirectory(uri) { Result.success(it) }
         resolveResult.fold(
             onSuccess = { resolvedUri ->

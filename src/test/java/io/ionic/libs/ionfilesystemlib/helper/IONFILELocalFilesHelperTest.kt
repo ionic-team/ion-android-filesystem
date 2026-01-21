@@ -576,6 +576,155 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
         }
     // endregion read by chunks tests
 
+    // region read with offset/length tests
+    @Test
+    fun `given offset and length, when readFileInChunks is called, the specific bytes from file are returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "Hello, World!"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        var i = 0
+        sut.readFileInChunks(
+            fullPath = path,
+            options = IONFILEReadInChunksOptions(
+                encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                chunkSize = 2,
+                offset = 7,
+                length = 5
+            ),
+            bufferSize = 2
+        ).test {
+            while (i <= 3) {
+                when (i) {
+                    0 -> assertEquals("Wo", awaitItem())
+                    1 -> assertEquals("rl", awaitItem())
+                    2 -> assertEquals("d", awaitItem())
+                    else -> awaitComplete()
+                }
+                i++
+            }
+        }
+    }
+
+    @Test
+    fun `given offset and length and base64 encoding, when readFile is called, the specific base64 portion of file is read`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "Hello, World!"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        val result = sut.readFile(
+            fullPath = path,
+            options = IONFILEReadOptions(
+                encoding = IONFILEEncoding.Base64,
+                offset = 0,
+                length = 5
+            )
+        )
+
+        // "Hello" in Base64 is "SGVsbG8="
+        assertEquals("SGVsbG8=", result.getOrNull())
+    }
+
+    @Test
+    fun `given length is after EOF, when readFile is called, the file portion contents is returned correctly`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "12345"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        val result = sut.readFile(
+            fullPath = path,
+            options = IONFILEReadOptions(
+                encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                offset = 3,
+                length = 10 // Try to read past EOF
+            )
+        )
+
+        assertEquals("45", result.getOrNull())
+    }
+
+    @Test
+    fun `given offset is after EOF, when readFile is called, empty string is returned`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "12345"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        val result = sut.readFile(
+            fullPath = path,
+            options = IONFILEReadOptions(
+                encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                offset = content.length
+            )
+        )
+
+        assertEquals("", result.getOrNull())
+    }
+
+    @Test
+    fun `given offset is after EOF, when readFileInChunks is called, no items are emitted`() = runTest {
+        val file = fileInRootDir
+        val path = file.absolutePath
+        val content = "12345"
+        sut.saveFile(
+            path,
+            IONFILESaveOptions(
+                content,
+                IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                IONFILESaveMode.WRITE,
+                createFileRecursive = false
+            )
+        )
+
+        sut.readFileInChunks(
+            fullPath = path,
+            options = IONFILEReadInChunksOptions(
+                encoding = IONFILEEncoding.WithCharset(Charsets.UTF_8),
+                offset = content.length + 100,
+                chunkSize = 10
+            )
+        ).test {
+            // no emissions because returned file will be empty
+            awaitComplete()
+        }
+    }
+    // endregion read with offset/length tests
+
     // region fileMetadata tests
     @Test
     fun `given empty file exists, when getting file metadata, the correct information is returned`() =

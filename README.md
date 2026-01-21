@@ -94,6 +94,7 @@ Clone the repository and run `./gradlew dokkaHtml` or `./gradlew dokkaGfm`. Docu
 2. I obtained an `OutOfMemoryError` when reading my file.
    - Use `readFileInChunks` instead of `readFile` if you're trying to read large files that may not fit in memory (e.g. videos).
    - Make sure you don't use a very large value for `chunkSize` - stick to a few MB at most.
+   - Alternatively you can use the `offset` + `length` parameters in `readFile`.
 3. The chunk received in `readFileInChunks` is not the same as specified in `IONFILEReadInChunksOptions#chunkSize`
    - The library may change the `chunkSize` internally to better improve the file reading. 
    - The `chunkSize` specifies the total amount of bytes to be read at a time, however the number of bytes returned may vary according to the provided `encoding`.

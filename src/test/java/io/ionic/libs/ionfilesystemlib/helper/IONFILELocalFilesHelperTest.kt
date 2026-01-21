@@ -620,6 +620,8 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
         val file = fileInRootDir
         val path = file.absolutePath
         val content = "Hello, World!"
+        // below API level 34 to check backwards-compatible skipNBytes implementation
+        every { IONFILEBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.TIRAMISU
         sut.saveFile(
             path,
             IONFILESaveOptions(
@@ -675,6 +677,8 @@ class IONFILELocalFilesHelperTest : IONFILEBaseJUnitTest() {
         val file = fileInRootDir
         val path = file.absolutePath
         val content = "12345"
+        // below API level 34 to check backwards-compatible skipNBytes implementation
+        every { IONFILEBuildConfig.getAndroidSdkVersionCode() } returns Build.VERSION_CODES.TIRAMISU
         sut.saveFile(
             path,
             IONFILESaveOptions(

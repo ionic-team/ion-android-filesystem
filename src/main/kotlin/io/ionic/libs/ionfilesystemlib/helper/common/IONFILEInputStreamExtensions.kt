@@ -1,10 +1,13 @@
 package io.ionic.libs.ionfilesystemlib.helper.common
 
+import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Base64
 import io.ionic.libs.ionfilesystemlib.model.IONFILEConstants
 import io.ionic.libs.ionfilesystemlib.model.IONFILEEncoding
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadInChunksOptions
 import io.ionic.libs.ionfilesystemlib.model.IONFILEReadOptions
+import java.io.EOFException
 import java.io.InputStream
 import java.io.InputStreamReader
 
@@ -151,8 +154,26 @@ private fun IONFILEEncoding.convertChunkSize(chunkSize: Int) = if (this == IONFI
     chunkSize
 }
 
+@SuppressLint("NewApi")
 private fun InputStream.applyOffset(offset: Int) {
-    if (offset > 0) {
-        skipNBytes(offset.toLong())
+    if (offset <= 0) return
+
+    if (IONFILEBuildConfig.getAndroidSdkVersionCode() >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        this.skipNBytes(offset.toLong())
+        return
+    }
+
+    var remaining = offset.toLong()
+    while (remaining > 0) {
+        val skipped = this.skip(remaining)
+        if (skipped > 0) {
+            remaining -= skipped
+        } else {
+            // skip() returned 0 → force progress via read()
+            if (this.read() == -1) {
+                throw EOFException("Reached end of stream with $remaining bytes left to skip")
+            }
+            remaining--
+        }
     }
 }

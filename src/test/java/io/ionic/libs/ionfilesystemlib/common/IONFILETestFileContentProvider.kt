@@ -104,6 +104,7 @@ internal class IONFILETestFileContentProvider : ContentProvider() {
                 BaseColumns._ID,
                 DocumentsContract.Document.COLUMN_DISPLAY_NAME,
                 OpenableColumns.SIZE,
+                MediaStore.MediaColumns.DATE_TAKEN,
                 MediaStore.MediaColumns.DATE_ADDED
             )
         )
@@ -117,6 +118,7 @@ internal class IONFILETestFileContentProvider : ContentProvider() {
                     id,
                     testFile.name,
                     testFile.data.length,
+                    testFile.dateTaken,
                     TEST_TIMESTAMP
                 )
             )
@@ -155,7 +157,9 @@ internal class IONFILETestFileContentProvider : ContentProvider() {
     internal data class TestFileContent(
         val name: String,
         val data: String,
-        val mimeType: String?
+        val mimeType: String?,
+        // MediaStore has a DATE_TAKEN column for every row, but it is NULL for anything that is not a photo or video
+        val dateTaken: Long? = null
     ) {
         val nameWithoutExtension = name.substringBefore('.')
     }

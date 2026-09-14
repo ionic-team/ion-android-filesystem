@@ -193,6 +193,38 @@ class IONFILEContentHelperTest {
         }
 
     @Test
+    fun `given file with date taken, when getting metadata from content uri, date taken is returned as timestamps`() =
+        runTest {
+            val fileName = "photo.jpeg"
+            val dateTaken = TEST_TIMESTAMP - 60_000
+            contentProvider.addToProvider(
+                IONFILETestFileContentProvider.TestFileContent(
+                    fileName,
+                    IMAGE_FILE_CONTENT,
+                    mimeType = "image/jpeg",
+                    dateTaken = dateTaken
+                )
+            )
+            val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/$fileName")
+
+            val result = sut.getFileMetadata(uri)
+
+            assertTrue(result.isSuccess)
+            assertEquals(
+                IONFILEMetadataResult(
+                    fullPath = uri.path ?: "",
+                    name = fileName,
+                    uri = uri,
+                    size = IMAGE_FILE_CONTENT.length.toLong(),
+                    type = IONFILEFileType.File("image/jpeg"),
+                    createdTimestamp = dateTaken,
+                    lastModifiedTimestamp = dateTaken
+                ),
+                result.getOrNull()
+            )
+        }
+
+    @Test
     fun `given non-existent file, when getting metadata from content uri, DoesNotExist error is returned`() =
         runTest {
             val uri = Uri.parse("content://$TEST_CONTENT_PROVIDER_NAME/fileThatDoesNotExist")

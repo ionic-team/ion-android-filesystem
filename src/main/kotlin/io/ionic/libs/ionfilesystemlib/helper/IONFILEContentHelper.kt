@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import androidx.core.database.getStringOrNull
 import io.ionic.libs.ionfilesystemlib.helper.common.FILE_MIME_TYPE_FALLBACK
 import io.ionic.libs.ionfilesystemlib.helper.common.readByChunks
 import io.ionic.libs.ionfilesystemlib.helper.common.readFull
@@ -177,15 +178,10 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @return the size of the file, or 0 if it cannot be retrieved; throws exceptions in case file cannot be opened
      */
     private fun getSizeForContentUri(cursor: Cursor, uri: Uri): Long =
-        cursor.getColumnIndex(OpenableColumns.SIZE).let { index ->
-            if (index >= 0) {
-                cursor.getString(index).toLongOrNull()
-            } else {
-                null
-            }
-        } ?: contentResolver.openAssetFileDescriptor(uri, "r")?.use {
-            it.length
-        } ?: 0L
+        cursor.getLongForNames(columnNames = listOf(OpenableColumns.SIZE))
+            ?: contentResolver.openAssetFileDescriptor(uri, "r")?.use {
+                it.length
+            } ?: 0L
 
     /**
      * Gets the last modified timestamp for a file in content uri
@@ -193,17 +189,15 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @param cursor the android [Cursor] containing information about the uri
      * @return the timestamp of last modification for the file, or 0 if not found
      */
-    private fun getLastModifiedTimestampForContentUri(cursor: Cursor): Long {
-        val columnIndex = cursor.getColumnIndexForNames(
+    private fun getLastModifiedTimestampForContentUri(cursor: Cursor): Long =
+        cursor.getLongForNames(
             columnNames = listOf(
                 MediaStore.MediaColumns.DATE_MODIFIED,
                 DocumentsContract.Document.COLUMN_LAST_MODIFIED
             )
         )
-        return columnIndex?.let { cursor.getString(columnIndex).toLongOrNull() }
         // Images from photoPicker in MediaStore may not have modification date; fallback to date of creation if available
             ?: getCreatedTimestampForContentUri(cursor)
-    }
 
     /**
      * Gets the created timestamp for a file in content uri
@@ -211,19 +205,31 @@ internal class IONFILEContentHelper(private val contentResolver: ContentResolver
      * @param cursor the android [Cursor] containing information about the uri
      * @return the timestamp of creation for file, or 0 if not found
      */
-    private fun getCreatedTimestampForContentUri(cursor: Cursor): Long {
-        val columnIndex = cursor.getColumnIndexForNames(
+    private fun getCreatedTimestampForContentUri(cursor: Cursor): Long =
+        cursor.getLongForNames(
             columnNames = listOf(
                 MediaStore.MediaColumns.DATE_TAKEN,
                 MediaStore.MediaColumns.DATE_ADDED
             )
-        )
-        return columnIndex?.let { cursor.getString(columnIndex).toLongOrNull() } ?: 0L
-    }
+        ) ?: 0L
 
     private fun Cursor.getColumnIndexForNames(
         columnNames: List<String>
     ): Int? = columnNames.firstNotNullOfOrNull { getColumnIndex(it).takeIf { index -> index >= 0 } }
+
+    /**
+     * Gets the value of the first column in [columnNames] that exists and holds a number for the current row.
+     *
+     * A column that exists can still be NULL: MediaStore's DATE_TAKEN is NULL for anything that is not a photo or video,
+     * so the next column is tried instead of reading the NULL.
+     */
+    private fun Cursor.getLongForNames(
+        columnNames: List<String>
+    ): Long? = columnNames.firstNotNullOfOrNull { name ->
+        getColumnIndex(name)
+            .takeIf { index -> index >= 0 }
+            ?.let { index -> getStringOrNull(index)?.toLongOrNull() }
+    }
 
     private fun <T> Result<T>.mapError(uri: Uri): Result<T> =
         exceptionOrNull()?.let { Result.failure(it.mapError(uri)) } ?: this

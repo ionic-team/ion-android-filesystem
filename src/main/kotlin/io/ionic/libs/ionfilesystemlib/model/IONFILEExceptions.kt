@@ -12,6 +12,9 @@ sealed class IONFILEExceptions(message: String, cause: Throwable? = null) :
     class UnknownError(override val cause: Throwable? = null) :
         IONFILEExceptions("An unknown error occurred.")
 
+    class PathEscapesDirectory(val path: String, val directory: String) :
+        IONFILEExceptions("The resolved path '$path' is outside of the requested directory '$directory'")
+
     class NotSupportedForContentScheme :
         IONFILEExceptions("The requested operation is not supported on a content:// uri")
 

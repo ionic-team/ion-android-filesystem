@@ -18,6 +18,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.shadows.ShadowEnvironment
 import java.io.File
+import java.nio.file.Files
 
 @RunWith(RobolectricTestRunner::class)
 class IONFILEUriHelperTest {
@@ -250,4 +251,92 @@ class IONFILEUriHelperTest {
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IONFILEExceptions.UnresolvableUri)
         }
+
+    // region directory containment (IONIC-102)
+
+    @Test
+    fun `given a path with a single level traversal escaping the directory, when resolving the uri, a PathEscapesDirectory exception is returned`() =
+        runTest {
+            val unresolvedUri = IONFILEUri.Unresolved(
+                parentFolder = IONFILEFolderType.INTERNAL_FILES,
+                uriPath = "../escaped.txt"
+            )
+
+            val result = sut.resolveUri(unresolvedUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given a path with nested traversal escaping the directory, when resolving the uri, a PathEscapesDirectory exception is returned`() =
+        runTest {
+            val unresolvedUri = IONFILEUri.Unresolved(
+                parentFolder = IONFILEFolderType.INTERNAL_FILES,
+                uriPath = "subdir/../../../escaped.txt"
+            )
+
+            val result = sut.resolveUri(unresolvedUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given a path with mixed dot-dot segments escaping the directory, when resolving the uri, a PathEscapesDirectory exception is returned`() =
+        runTest {
+            val unresolvedUri = IONFILEUri.Unresolved(
+                parentFolder = IONFILEFolderType.INTERNAL_FILES,
+                uriPath = "./../../escaped.txt"
+            )
+
+            val result = sut.resolveUri(unresolvedUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given a path with traversal that stays within the directory, when resolving the uri, a Resolved#Local is returned`() =
+        runTest {
+            File(context.filesDir, "a").mkdirs()
+            val unresolvedUri = IONFILEUri.Unresolved(
+                parentFolder = IONFILEFolderType.INTERNAL_FILES,
+                uriPath = "a/../b.txt"
+            )
+
+            val result = sut.resolveUri(unresolvedUri)
+
+            assertTrue(result.isSuccess)
+            assertEquals(
+                IONFILEUri.Resolved.Local(
+                    "${context.filesDir}/a/../b.txt",
+                    Uri.parse("file://${context.filesDir}/a/../b.txt"),
+                    LocalUriType.UNKNOWN,
+                    inExternalStorage = false
+                ),
+                result.getOrNull()
+            )
+        }
+
+    @Test
+    fun `given a symlink inside the directory pointing outside it, when resolving a path through the symlink, a PathEscapesDirectory exception is returned`() =
+        runTest {
+            val outsideDir = Files.createTempDirectory("outside").toFile()
+            val secretFile = File(outsideDir, "secret.txt").apply { writeText("secret") }
+            val symlink = File(context.filesDir, "escape-link")
+            Files.createSymbolicLink(symlink.toPath(), outsideDir.toPath())
+            // no ".." anywhere in this path - the escape happens purely via the symlink
+            val unresolvedUri = IONFILEUri.Unresolved(
+                parentFolder = IONFILEFolderType.INTERNAL_FILES,
+                uriPath = "escape-link/${secretFile.name}"
+            )
+
+            val result = sut.resolveUri(unresolvedUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    // endregion directory containment (IONIC-102)
 }

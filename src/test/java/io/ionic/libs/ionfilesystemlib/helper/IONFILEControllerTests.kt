@@ -552,6 +552,78 @@ class IONFILEControllerTests {
         }
     // endregion uri resolve errors
 
+    // region directory containment (IONIC-102)
+    @Test
+    fun `given valid source and traversing destination, when copying, PathEscapesDirectory error is returned`() =
+        runTest {
+            val sourceUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_FILES, "oldFile.txt")
+            val destinationUri =
+                IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_CACHE, "../escaped.txt")
+            sut.saveFile(
+                sourceUri,
+                options = IONFILESaveOptions(
+                    "lorem ipsum",
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
+                    true
+                )
+            ).let { assertTrue(it.isSuccess) }
+
+            val result = sut.copy(sourceUri, destinationUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given traversing source and valid destination, when copying, PathEscapesDirectory error is returned`() =
+        runTest {
+            val sourceUri =
+                IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_FILES, "../escaped.txt")
+            val destinationUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_CACHE, "newFile.txt")
+
+            val result = sut.copy(sourceUri, destinationUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given valid source and traversing destination, when moving, PathEscapesDirectory error is returned`() =
+        runTest {
+            val sourceUri = IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_FILES, "oldFile.txt")
+            val destinationUri =
+                IONFILEUri.Unresolved(IONFILEFolderType.DOCUMENTS, "../escaped.txt")
+            sut.saveFile(
+                sourceUri,
+                options = IONFILESaveOptions(
+                    "lorem ipsum",
+                    IONFILEEncoding.DefaultCharset,
+                    IONFILESaveMode.WRITE,
+                    true
+                )
+            ).let { assertTrue(it.isSuccess) }
+
+            val result = sut.move(sourceUri, destinationUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+
+    @Test
+    fun `given traversing source and valid destination, when moving, PathEscapesDirectory error is returned`() =
+        runTest {
+            val sourceUri =
+                IONFILEUri.Unresolved(IONFILEFolderType.EXTERNAL_FILES, "../escaped.txt")
+            val destinationUri = IONFILEUri.Unresolved(IONFILEFolderType.DOCUMENTS, "newFile.txt")
+
+            val result = sut.move(sourceUri, destinationUri)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IONFILEExceptions.PathEscapesDirectory)
+        }
+    // endregion directory containment (IONIC-102)
+
     // region read file input errors
     @Test
     fun `given negative offset, when calling readFile, IllegalArgumentException is returned`() = runTest {

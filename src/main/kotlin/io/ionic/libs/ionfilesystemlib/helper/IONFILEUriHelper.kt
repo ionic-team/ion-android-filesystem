@@ -137,8 +137,34 @@ internal class IONFILEUriHelper(context: Context) {
      * @param localPath the local path to the file (minus the parent folder path)
      * @return a [File] object pointing to the local file
      */
-    private fun getLocalFileObject(parentFolderFileObject: File?, localPath: String): File =
-        parentFolderFileObject?.let { File(it, localPath) } ?: File(localPath)
+    private fun getLocalFileObject(parentFolderFileObject: File?, localPath: String): File {
+        val joined = parentFolderFileObject?.let { File(it, localPath) } ?: File(localPath)
+        if (parentFolderFileObject != null) {
+            assertContainedWithin(joined, parentFolderFileObject)
+        }
+        return joined
+    }
+
+    /**
+     * Verifies that [file]'s canonical (symlink-resolved, "."/".."-resolved) path is the
+     * same as, or a descendant of, [directory]'s canonical path.
+     *
+     * Compares with a trailing separator so a sibling directory sharing a name prefix
+     * (e.g. "/data/data" vs "/data/dataOther") is never mistaken for being contained.
+     */
+    private fun assertContainedWithin(file: File, directory: File) {
+        val canonicalFile = file.canonicalFile
+        val canonicalDirectory = directory.canonicalFile
+        val directoryPathWithSeparator = canonicalDirectory.path + File.separator
+        val isContained = canonicalFile == canonicalDirectory ||
+            canonicalFile.path.startsWith(directoryPathWithSeparator)
+        if (!isContained) {
+            throw IONFILEExceptions.PathEscapesDirectory(
+                path = canonicalFile.path,
+                directory = canonicalDirectory.path,
+            )
+        }
+    }
 
     /**
      * Gets the type of local file uri

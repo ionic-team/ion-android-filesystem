@@ -20,11 +20,13 @@ This library is used by both [Capacitor](https://github.com/ionic-team/capacitor
 
 ## Usage
 
+> Replace ${version to use} below with the version you want to use. Check the Releases page for available versions.
+
 In your app-level gradle file, import the `ion-android-filesystem` library like so:
 
 ```
 dependencies {
-    implementation("io.ionic.libs:ionfilesystem-android:1.0.0")
+    implementation("io.ionic.libs:ionfilesystem-android:${version to use}")
 }
 ```
 
